@@ -1,0 +1,98 @@
+{
+  "id": "iva",
+  "name": "Interval Values Analysis",
+  "descr": "Calculates mean, median, sd, slope and intercept functions within segment of values. Requires two input tiers: one with the values (like F0 or intensities) and one with segments (like IPUs, tokens, ...). ",
+  "required": "",
+  "api": "sppasIVA",
+
+  "resources": [
+  ],
+
+  "anntype": [
+    "STANDALONE"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "",
+      "text": "Input file pattern"
+    },
+    {
+      "id": "inputoptpattern",
+      "type": "str",
+      "value": "-palign",
+      "text": "Optional input file pattern"
+    },
+    {
+      "id": "outputpattern",
+      "type": "str",
+      "value": "-iva",
+      "text": "Output file pattern"
+    },
+    {
+      "id": "values",
+      "type": "string",
+      "value": "PitchTier",
+      "text": "Name of the tier with numerical values:"
+    },
+    {
+      "id": "segments",
+      "type": "string",
+      "value": "TokensAlign",
+      "text": "Name of the tier with segments:"
+    },
+    {
+      "id": "separators",
+      "type": "string",
+      "value": "# + * @ dummy",
+      "text": "Create segments within groups of annotation tags not including:"
+    },
+    {
+      "id": "iva_prefix_label",
+      "type": "string",
+      "value": "sgmt_",
+      "text": "Prefix of each segment label:"
+    },
+    {
+      "id": "occ",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the number of item values of each segment"
+    },
+    {
+      "id": "total",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the sum of values of each segment"
+    },
+    {
+      "id": "mean",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the mean of values of each segment"
+    },
+    {
+      "id": "median",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the median of values of each segment"
+    },
+    {
+      "id": "stdev",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the standard deviation of values of each segment"
+    },
+    {
+      "id": "linreg",
+      "type": "bool",
+      "value": true,
+      "text": "Create a tier with the linear regression of values of each segment"
+    }
+  ],
+
+  "refs": {
+  }
+}

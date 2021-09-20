@@ -1,0 +1,12 @@
+{
+  "log_level": 0,
+  "splash_delay": 3,
+  "features": {
+    "video": false,
+    "wxpython": true,
+    "brew": false,
+    "julius": true,
+    "audioplay": false,
+    "spa": true
+  }
+}

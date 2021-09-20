@@ -1,0 +1,106 @@
+{
+  "id": "facedetect",
+  "name": "Face Detection",
+  "descr": "Detect faces on an image or a video with DNN and HCC.",
+  "required": "",
+  "api": "sppasFaceDetection",
+
+  "resources": [
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "res10_300x300_ssd_iter_140000_fp16.caffemodel",
+      "lang": false
+    },
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "opencv_face_detector_uint8.pb",
+      "lang": false
+    },
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "haarcascade_frontalface_alt.xml",
+      "lang": false
+    },
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "haarcascade_profileface.xml",
+      "lang": false
+    }
+  ],
+
+  "anntype": [
+    "STANDALONE"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "",
+      "text": "Input file pattern of the image, or video file"
+    },
+    {
+      "id": "nbest",
+      "type": "int",
+      "value": "0",
+      "text": "Maximum number of faces to select among those detected (0=auto)"
+    },
+    {
+      "id": "score",
+      "type": "float",
+      "value": "0.2",
+      "text": "Minimum confidence score to select detected faces"
+    },
+    {
+      "id": "portrait",
+      "type": "bool",
+      "value": false,
+      "text": "Consider the portrait instead of the face in output image(s)"
+    },
+    {
+      "id": "csv",
+      "type": "bool",
+      "value": true,
+      "text": "Save coordinates of detected faces in a CSV file"
+    },
+    {
+      "id": "folder",
+      "type": "bool",
+      "value": false,
+      "text": "Save result in a folder with image files -- if video input only"
+    },
+    {
+      "id": "tag",
+      "type": "bool",
+      "value": true,
+      "text": "Surround the detected faces in the output image(s)"
+    },
+    {
+      "id": "crop",
+      "type": "bool",
+      "value": false,
+      "text": "Save detected faces in cropped images"
+    },
+    {
+      "id": "width",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed width (0=no)"
+    },
+    {
+      "id": "height",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed height (0=no)"
+    }
+  ]
+}
+

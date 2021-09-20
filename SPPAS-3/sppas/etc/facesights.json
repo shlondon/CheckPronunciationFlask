@@ -1,0 +1,86 @@
+{
+  "id": "facesights",
+  "name": "Face Landmarks",
+  "descr": "Estimates face landmarks as a set o 68 points on an image or a video. Requires an image/a video and a CSV file with the coordinates of the faces. Produces a video and a CSV file with the sights of the faces.",
+  "required": "facedetect",
+  "api": "sppasFaceSights",
+
+  "resources": [
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "lbfmodel68.yaml",
+      "lang": false
+    },
+    {
+      "path": "faces",
+      "type": "file",
+      "ext": "",
+      "name": "kazemi_landmark.dat",
+      "lang": false
+    }
+  ],
+
+  "anntype": [
+    "STANDALONE"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "",
+      "text": "Input file pattern of the image, or video file"
+    },
+    {
+      "id": "inputoptpattern",
+      "type": "str",
+      "value": "-ident",
+      "text": "Input pattern of the CSV file with detected faces or identified person faces"
+    },
+    {
+      "id": "outputpattern",
+      "type": "str",
+      "value": "-sights",
+      "text": "Output file pattern"
+    },
+    {
+      "id": "csv",
+      "type": "bool",
+      "value": true,
+      "text": "Save landmark points in a CSV file"
+    },
+    {
+      "id": "tag",
+      "type": "bool",
+      "value": true,
+      "text": "Draw landmark points on the image, or the video"
+    },
+    {
+      "id": "folder",
+      "type": "bool",
+      "value": false,
+      "text": "Save result in a folder with image files -- if video input only"
+    },
+    {
+      "id": "crop",
+      "type": "bool",
+      "value": false,
+      "text": "Save detected face sights in cropped images"
+    },
+    {
+      "id": "width",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed width (0=no)"
+    },
+    {
+      "id": "height",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed height (0=no)"
+    }
+  ]
+}
+

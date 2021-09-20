@@ -1,0 +1,42 @@
+{
+  "id": "overlaps",
+  "name": "Activity overlaps",
+  "descr": "Search for overlapped activities of two speakers.",
+  "required": "-activity",
+  "api": "sppasOverActivity",
+
+  "resources": [
+  ],
+
+  "anntype": [
+    "INTERACTION"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "-activity",
+      "text": "Input file pattern"
+    },
+    {
+      "id": "outputpattern",
+      "type": "str",
+      "value": "-overlaps",
+      "text": "Output file pattern"
+    },
+    {
+      "id": "tiername",
+      "type": "str",
+      "value": "Activity",
+      "text": "Name of the tier to search for overlaps"
+    },
+    {
+      "id": "ignore",
+      "type": "str",
+      "value": "dummy, pause, noise",
+      "text": "Tags to ignore, separated by commas"
+    }
+  ]
+}
+

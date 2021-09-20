@@ -1,0 +1,1 @@
+2021-08-25 14:44:34,921 [INFO] Logging redirected to FileHandler (level=0) in file /Users/santiagolondono/Downloads/SPPAS-3/logs/SPPAS_install_2021-08-25_1362_0001.txt.

@@ -1,0 +1,48 @@
+{
+  "id": "lexmetric",
+  "name": "Lexical Metric",
+  "descr": "Estimate occurrences and ranks of annotation labels.",
+  "required": "",
+  "api": "sppasLexMetric",
+
+  "resources": [
+  ],
+
+  "anntype": [
+    "STANDALONE"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "-palign",
+      "text": "Input file pattern"
+    },
+    {
+      "id": "outputpattern",
+      "type": "str",
+      "value": "-lexm",
+      "text": "Output file pattern"
+    },
+    {
+      "id": "tiername",
+      "type": "str",
+      "value": "TokensAlign",
+      "text": "Input tier to estimate tags"
+    },
+    {
+      "id": "alt",
+      "type": "bool",
+      "value": true,
+      "text": "Consider alternative tags in the estimations"
+    },
+    {
+      "id": "separators",
+      "type": "string",
+      "value": "# + * @ dummy",
+      "text": "Evaluate the number of labels in segments not including:"
+    }
+  ]
+}
+

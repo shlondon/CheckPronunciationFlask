@@ -1,0 +1,84 @@
+{
+  "id": "faceident",
+  "name": "Person Face Identity",
+  "descr": "Assign a person identity to detected faces of a video. Requires a video and a CSV file with coordinates of the detected faces. Produces a video and a CSV file with coordinates of each identified person.",
+  "required": "facedetection",
+  "api": "sppasFaceIdentifier",
+
+  "resources": [
+  ],
+
+  "anntype": [
+    "STANDALONE"
+  ],
+
+  "options": [
+    {
+      "id": "inputpattern",
+      "type": "str",
+      "value": "",
+      "text": "Input file pattern of the video"
+    },
+    {
+      "id": "inputoptpattern",
+      "type": "str",
+      "value": "-face",
+      "text": "Input pattern of the CSV file with detected faces"
+    },
+    {
+      "id": "outputpattern",
+      "type": "str",
+      "value": "-ident",
+      "text": "Output file pattern"
+    },
+    {
+      "id": "fdmin",
+      "type": "float",
+      "value": "0.8",
+      "text": "Minimum score of face detection for a person identity candidate"
+    },
+    {
+      "id": "ident",
+      "type": "bool",
+      "value": true,
+      "text": "Save a video of the portrait of each identified person."
+    },
+    {
+      "id": "csv",
+      "type": "bool",
+      "value": true,
+      "text": "Save coordinates of all identified faces in a CSV file"
+    },
+    {
+      "id": "tag",
+      "type": "bool",
+      "value": true,
+      "text": "Surround the identified faces in the images and video outputs"
+    },
+    {
+      "id": "folder",
+      "type": "bool",
+      "value": false,
+      "text": "Save the identified faces in a folder with tagged and/or cropped images"
+    },
+    {
+      "id": "crop",
+      "type": "bool",
+      "value": false,
+      "text": "Save the face of identified persons in cropped images"
+    },
+    {
+      "id": "width",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed width (0=no)"
+    },
+    {
+      "id": "height",
+      "type": "int",
+      "value": 0,
+      "text": "Resize all the cropped images to a fixed height (0=no)"
+    }
+  ]
+}
+

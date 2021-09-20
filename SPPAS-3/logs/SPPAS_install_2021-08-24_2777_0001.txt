@@ -1,0 +1,79 @@
+2021-08-24 14:43:37,977 [INFO] Logging redirected to FileHandler (level=0) in file /Users/santiagolondono/Downloads/SPPAS-3/logs/SPPAS_install_2021-08-24_2777_0001.txt.
+2021-08-24 14:43:37,977 [INFO] Operating system: darwin
+2021-08-24 14:43:37,977 [INFO] Search for a 'python' command that this installer can launch...
+2021-08-24 14:43:37,977 [INFO] Process command: python -c 'import sys; print(sys.version_info.major)' 
+2021-08-24 14:43:38,118 [INFO] Command returned: 2
+2021-08-24 14:43:38,118 [INFO] Process command: python3 -c 'import sys; print(sys.version_info.major)' 
+2021-08-24 14:43:38,153 [INFO] Command returned: 3
+2021-08-24 14:43:38,153 [INFO] ... the python command used by the installer system is 'python3'
+2021-08-24 14:43:38,159 [WARNING] Set a non-standard language name 'fraquebec' for feature 'fraquebec'.
+2021-08-24 14:43:38,160 [INFO] System installer: MacOsInstaller
+2021-08-24 14:43:38,160 [INFO] Update pip, the package installer for Python:
+2021-08-24 14:43:38,160 [INFO] Process command: python3 -m pip install --upgrade pip
+2021-08-24 14:43:40,669 [INFO]     * * * * *   Installation of 'wxpython'.   * * * * * 
+2021-08-24 14:43:40,670 [INFO]   ==> 
+2021-08-24 14:43:40,670 [INFO] Process command: python3 -m pip show wxpython
+2021-08-24 14:43:41,072 [INFO] Return code: 1
+2021-08-24 14:43:41,072 [INFO] Try to install wxpython for all users.
+2021-08-24 14:43:41,073 [INFO] Process command: python3 -m pip install wxpython --no-warn-script-location
+2021-08-24 14:45:12,112 [INFO] Return code: 0
+2021-08-24 14:45:12,114 [INFO] Collecting wxpython
+  Downloading wxPython-4.1.1-cp37-cp37m-macosx_10_9_x86_64.whl (18.2 MB)
+Requirement already satisfied: six in /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages (from wxpython) (1.16.0)
+Requirement already satisfied: numpy in /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages (from wxpython) (1.19.5)
+Requirement already satisfied: pillow in /Library/Frameworks/Python.framework/Versions/3.7/lib/python3.7/site-packages (from wxpython) (8.2.0)
+Installing collected packages: wxpython
+Successfully installed wxpython-4.1.1
+
+2021-08-24 14:45:12,115 [INFO]   ==> 'wxpython' is installed.
+2021-08-24 14:45:12,116 [INFO]   ==> 'wxpython' is installed.
+2021-08-24 14:45:12,116 [INFO]     * * * * *   Installation of 'brew'.   * * * * * 
+2021-08-24 14:45:12,116 [INFO]   ==> Install of 'brew' is disabled.
+2021-08-24 14:45:12,116 [INFO]     * * * * *   Installation of 'julius'.   * * * * * 
+2021-08-24 14:45:12,116 [INFO]   ==> 
+2021-08-24 14:45:12,117 [INFO] Process command: brew list julius
+2021-08-24 14:45:15,669 [INFO] Process command: brew info julius
+2021-08-24 14:45:18,655 [INFO]   ==> 'julius' is installed.
+2021-08-24 14:45:18,655 [INFO]   ==> 'julius' is installed.
+2021-08-24 14:45:18,656 [INFO]     * * * * *   Installation of 'video'.   * * * * * 
+2021-08-24 14:45:18,656 [INFO]   ==> Install of 'video' is disabled.
+2021-08-24 14:45:18,656 [INFO]     * * * * *   Installation of 'audioplay'.   * * * * * 
+2021-08-24 14:45:18,656 [INFO]   ==> Install of 'audioplay' is disabled.
+2021-08-24 14:45:18,656 [INFO]     * * * * *   Installation of 'facedetect'.   * * * * * 
+2021-08-24 14:45:18,657 [INFO]   ==> Install of 'facedetect' is disabled.
+2021-08-24 14:45:18,657 [INFO]     * * * * *   Installation of 'facemark'.   * * * * * 
+2021-08-24 14:45:18,657 [INFO]   ==> Install of 'facemark' is disabled.
+2021-08-24 14:45:18,657 [INFO]     * * * * *   Installation of 'lpc'.   * * * * * 
+2021-08-24 14:45:18,657 [INFO]   ==> Install of 'lpc' is disabled.
+2021-08-24 14:45:18,657 [INFO]     * * * * *   Installation of 'cat'.   * * * * * 
+2021-08-24 14:45:18,658 [INFO]   ==> Install of 'cat' is disabled.
+2021-08-24 14:45:18,658 [INFO]     * * * * *   Installation of 'cmn'.   * * * * * 
+2021-08-24 14:45:18,658 [INFO]   ==> Install of 'cmn' is disabled.
+2021-08-24 14:45:18,658 [INFO]     * * * * *   Installation of 'deu'.   * * * * * 
+2021-08-24 14:45:18,658 [INFO]   ==> Install of 'deu' is disabled.
+2021-08-24 14:45:18,658 [INFO]     * * * * *   Installation of 'eng'.   * * * * * 
+2021-08-24 14:45:18,658 [INFO]   ==> Install of 'eng' is disabled.
+2021-08-24 14:45:18,658 [INFO]     * * * * *   Installation of 'fra'.   * * * * * 
+2021-08-24 14:45:18,658 [INFO]   ==> Install of 'fra' is disabled.
+2021-08-24 14:45:18,659 [INFO]     * * * * *   Installation of 'fraquebec'.   * * * * * 
+2021-08-24 14:45:18,659 [INFO]   ==> Install of 'fraquebec' is disabled.
+2021-08-24 14:45:18,659 [INFO]     * * * * *   Installation of 'ita'.   * * * * * 
+2021-08-24 14:45:18,659 [INFO]   ==> Install of 'ita' is disabled.
+2021-08-24 14:45:18,659 [INFO]     * * * * *   Installation of 'jpn'.   * * * * * 
+2021-08-24 14:45:18,659 [INFO]   ==> Install of 'jpn' is disabled.
+2021-08-24 14:45:18,659 [INFO]     * * * * *   Installation of 'kor'.   * * * * * 
+2021-08-24 14:45:18,659 [INFO]   ==> Install of 'kor' is disabled.
+2021-08-24 14:45:18,659 [INFO]     * * * * *   Installation of 'nan'.   * * * * * 
+2021-08-24 14:45:18,659 [INFO]   ==> Install of 'nan' is disabled.
+2021-08-24 14:45:18,660 [INFO]     * * * * *   Installation of 'pcm'.   * * * * * 
+2021-08-24 14:45:18,660 [INFO]   ==> Install of 'pcm' is disabled.
+2021-08-24 14:45:18,660 [INFO]     * * * * *   Installation of 'pol'.   * * * * * 
+2021-08-24 14:45:18,660 [INFO]   ==> Install of 'pol' is disabled.
+2021-08-24 14:45:18,660 [INFO]     * * * * *   Installation of 'por'.   * * * * * 
+2021-08-24 14:45:18,660 [INFO]   ==> Install of 'por' is disabled.
+2021-08-24 14:45:18,660 [INFO]     * * * * *   Installation of 'spa'.   * * * * * 
+2021-08-24 14:45:18,660 [INFO]   ==> Install of 'spa' is disabled.
+2021-08-24 14:45:18,660 [INFO]     * * * * *   Installation of 'vie'.   * * * * * 
+2021-08-24 14:45:18,661 [INFO]   ==> Install of 'vie' is disabled.
+2021-08-24 14:45:18,661 [INFO]     * * * * *   Installation of 'yue'.   * * * * * 
+2021-08-24 14:45:18,661 [INFO]   ==> Install of 'yue' is disabled.
