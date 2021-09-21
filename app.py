@@ -152,7 +152,9 @@ def read_base64_files():
     print('Its printing files into audios folder')
     print(os.listdir('./audios'))
     print('Content into pronunciation-palign.csv file')
-    print(os.system('./audios/pronunciation-palign.csv'))
+    print('Printing with cat')
+    print(os.system('cat ./audios/pronunciation-palign.csv'))
+    print('Printing with open')
     file_input = open('./audios/pronunciation-palign.csv', 'r')
     file_palign_csv = file_input.readlines()
     [print(line) for line in file_palign_csv]
