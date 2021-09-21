@@ -147,7 +147,11 @@ def read_base64_files():
 
     # Calculate Accuaracy Score
     # read pronunciation palign file
-    path_pronunciation_palign = 'audios/pronunciation-palign.csv'
+    print('Files into project')
+    print(os.listdir())
+    print('Its printing files into audios folder')
+    print(os.listdir('./audios'))
+    path_pronunciation_palign = './audios/pronunciation-palign.csv'
     df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
     df_pronunciation_palign['duration'] = df_pronunciation_palign.end - df_pronunciation_palign.start
 
