@@ -22,6 +22,7 @@ def read_base64_files():
     import pandas as pd
 
     # Read information
+    print('Its reading request inputs')
     request_data = request.get_json()
     pronunciationBase64 = request_data['Pronunciation']
     pronunciationFormat = request_data['PronunciationFormat']
@@ -33,6 +34,7 @@ def read_base64_files():
         phrase = phrase.replace(puntuacion_mark, '')
 
     # Create audios into a RawAudiosAndTxtFile folder and put in the same folder the phrase in txt file format
+    print('Its transforming base64 inputs to audio files')
     os.system('mkdir RawAudiosAndTxtFile')
     
     # Pronunciation Audio
@@ -53,6 +55,7 @@ def read_base64_files():
     text_file.close()
 
     # Generate adecuate audio files
+    print('Its generating adecuate audio files')
     os.system('mkdir audios')
     # Iterate over multiples audios files
     for audiofile in os.scandir('./RawAudiosAndTxtFile'):
@@ -84,6 +87,7 @@ def read_base64_files():
 
     # Speech to text with SpeechRecognition Package
     # Create recognizer instance
+    print('Its doing speech recognition process')
     r = sr.Recognizer()
 
     # Capture audio data
@@ -107,6 +111,7 @@ def read_base64_files():
     text_file.close()
 
     # To excecute forced alignment process until to produce the whished files
+    print('Its doing forced alignment process')
     namepronunciationfile = 'pronunciation-palign.csv'
     namepronunciationNativefile = 'pronunciationNative-palign.csv'
     filesinaudio = os.listdir('./audios')
@@ -135,8 +140,8 @@ def read_base64_files():
 
     print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
 
-
     # Calculate Completeness Score
+    print('Its calculating scores')
     # completeness score
     completeness_score = int(round(fuzz.QRatio(pronunciation, phrase),0))
 
@@ -213,6 +218,9 @@ def read_base64_files():
                             'Accuracy': accuracy_score,
                             'Fluency': fluency_score,
                             'Pronunciation': pronunciation_score}
+
+    # Remove audios and RawAudiosAndTxtFile
+    os.system  ('rm -r audios RawAudiosAndTxtFile')
 
     return jsonify(pronunciations_scores)
 
