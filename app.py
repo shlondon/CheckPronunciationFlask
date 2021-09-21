@@ -22,6 +22,10 @@ def read_base64_files():
     import numpy as np
     import pandas as pd
 
+    # Remove audios and RawAudiosAndTxtFile
+    print('Delete from begining audios and RawAudiosAndTxtFile folders')
+    os.system  ('rm -r audios RawAudiosAndTxtFile')
+
     # Read information
     print('Its reading request inputs')
     request_data = request.get_json()
