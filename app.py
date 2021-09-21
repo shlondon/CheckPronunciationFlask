@@ -182,6 +182,7 @@ def read_base64_files():
     # Calculate Fluency Score
 
     # Pronunciation Phrase duration
+    
     pronunciation_phrase_duration = round(df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
 
     # Pronunciation tokens duration
