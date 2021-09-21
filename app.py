@@ -35,7 +35,12 @@ def read_base64_files():
 
     # Create audios into a RawAudiosAndTxtFile folder and put in the same folder the phrase in txt file format
     print('Its transforming base64 inputs to audio files')
+    print('Files and folders')
+    print(os.listdir())
     os.system('mkdir RawAudiosAndTxtFile')
+    print('Files and folders after creat RawAudioAndTxtFile')
+    print(os.listdir())
+
     
     # Pronunciation Audio
     pathnamepronunciationAudio = './RawAudiosAndTxtFile/pronunciation.' + pronunciationFormat
