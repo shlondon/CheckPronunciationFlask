@@ -1,35 +1,40 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.param.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Parametrization of automatic annotations.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    ---------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.param.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    ---------------------------------------------------------------------
 
 """
 
@@ -40,28 +45,20 @@ import os
 from sppas.src.config import paths
 from sppas.src.config import annots
 from sppas.src.config import msg
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
+from sppas.src.config import sppasIOError
 
 from sppas.src.structs import sppasOption
 from sppas.src.structs import sppasLangResource
-
 from sppas.src.wkps import sppasWorkspace, States
-from sppas.src.anndata import sppasTrsRW
-from sppas.src.imgdata import image_extensions
-from sppas.src.audiodata.aio import extensions as audio_extensions
-from sppas.src.videodata import video_extensions
+
+from .autils import SppasFiles
 
 # ----------------------------------------------------------------------------
 
 
 class annotationParam(object):
     """Annotation data parameters.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     Class to store meta data of an automatic annotation like its name,
     description, supported languages, etc.
@@ -304,12 +301,6 @@ class annotationParam(object):
 class sppasParam(object):
     """Annotation parameters manager.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     Parameters of a set of annotations.
 
     """
@@ -330,12 +321,11 @@ class sppasParam(object):
         self.annotations = []
         self.load_annotations(annotation_keys)
 
-        # New in SPPAS 3.3
+        # New in SPPAS 3.3 -- modified in 3.9
+        # The output extension used by any annotations to create files
         self._out_extensions = dict()
-        self._out_extensions["ANNOT"] = annots.annot_extension
-        self._out_extensions["IMAGE"] = annots.image_extension
-        self._out_extensions["VIDEO"] = annots.video_extension
-        self._out_extensions["AUDIO"] = annots.audio_extension
+        for filetype in SppasFiles.OUT_FORMATS:
+            self._out_extensions[filetype] = SppasFiles.DEFAULT_EXTENSIONS[filetype]
 
     # ------------------------------------------------------------------------
 
@@ -433,6 +423,10 @@ class sppasParam(object):
                 elif os.path.isdir(files):
                     for f in os.listdir(files):
                         self.add_to_workspace(os.path.join(files, f))
+
+                else:
+                    raise sppasIOError(files)
+                    # logging.error("No such file or directory: {!s:s}".format(files))
 
             except Exception as e:
                 logging.error('File {!s:s} not added into the workspace: {:s}'
@@ -588,54 +582,14 @@ class sppasParam(object):
     # Annotation file output format
     # -----------------------------------------------------------------------
 
-    @staticmethod
-    def get_outformat_extensions(out_format):
-        """Return the list of output extensions an out_format can support."""
-        if out_format == "ANNOT":
-            # all extension of annotation files (neither measure nor table)
-            annot_ext = sppasTrsRW.annot_extensions()
-            # all extensions with a writer
-            all_ext_out = sppasTrsRW.extensions_out()
-            return ["." + e for e in annot_ext if e in all_ext_out]
-
-        if out_format == "IMAGE":
-            return image_extensions
-        if out_format == "VIDEO":
-            return video_extensions
-        if out_format == "AUDIO":
-            return audio_extensions
-
-        return list()
-
-    # -----------------------------------------------------------------------
-
-    @staticmethod
-    def get_default_outformat_extension(out_format):
-        """Return the default output extension of an out_format."""
-        if out_format == "ANNOT":
-            return annots.annot_extension
-        if out_format == "IMAGE":
-            return annots.image_extension
-        if out_format == "VIDEO":
-            return annots.video_extension
-        if out_format == "AUDIO":
-            return annots.audio_extension
-
-        return ""
-
-    # -----------------------------------------------------------------------
-
     def get_output_extension(self, out_format):
-        """Return the output extension defined for an out_format."""
-        if out_format in annots.outformat:
-            return self._out_extensions[out_format]
-
-        return ""
+        """Return the output extension defined for the given out_format."""
+        return self._out_extensions[out_format]
 
     # -----------------------------------------------------------------------
 
     def set_output_extension(self, output_ext, output_format):
-        """Fix the output extension of all the annotations of a given out format.
+        """Fix the output extension of all the annotations of a given out_format.
 
         :param output_ext: (str) File extension (with or without a dot)
         :param output_format: (str) Either ANNOT, AUDIO, VIDEO OR IMAGE
@@ -646,7 +600,7 @@ class sppasParam(object):
         if not output_ext.startswith("."):
             output_ext = "." + output_ext
 
-        for e in self.get_outformat_extensions(output_format):
+        for e in SppasFiles.get_outformat_extensions(output_format):
             if e.startswith(".") is False:
                 e = "." + e
             if output_ext.lower() == e.lower():

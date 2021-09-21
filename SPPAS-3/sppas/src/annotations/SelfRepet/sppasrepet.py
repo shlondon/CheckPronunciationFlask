@@ -1,35 +1,40 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.SelfRepet.sppasrepet.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of Self-Repetitiond automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.SelfRepet.sppasrepet.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -38,7 +43,6 @@ import logging
 from sppas.src.config import symbols
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
-from sppas.src.anndata import sppasTier
 from sppas.src.anndata import sppasInterval
 from sppas.src.anndata import sppasLocation
 from sppas.src.anndata import sppasLabel
@@ -62,12 +66,6 @@ SIL_ORTHO = list(symbols.ortho.keys())[list(symbols.ortho.values()).index("silen
 class sppasSelfRepet(sppasBaseRepet):
     """SPPAS Automatic Self-Repetition Detection.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
-
     Detect self-repetitions. The result has never been validated by an expert.
     This annotation is performed on the basis of time-aligned tokens or lemmas.
     The output is made of 2 tiers with sources and echos.
@@ -76,9 +74,6 @@ class sppasSelfRepet(sppasBaseRepet):
 
     def __init__(self, log=None):
         """Create a new sppasRepetition instance.
-
-        Log is used for a better communication of the annotation process and its
-        results. If None, logs are redirected to the default logging system.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -179,8 +174,7 @@ class sppasSelfRepet(sppasBaseRepet):
         :param repetition: (DataRepetition)
         :param spk_tier: (sppasTier) The tier of the speaker (to detect sources)
         :param start_idx: (int) start index of the interval in spk_tier
-        :param src_tier: (sppasTier) The resulting tier with sources
-        :param echo_tier: (sppasTier) The resulting tier with echos
+        :param trs_out: (sppasTranscription)
         :returns: (bool) the repetition was added or not
 
         """
@@ -249,17 +243,16 @@ class sppasSelfRepet(sppasBaseRepet):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned tokens
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Time-aligned tokens
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be used
-        parser = sppasTrsRW(input_file[0])
+        parser = sppasTrsRW(input_files[0])
         trs_input = parser.read()
         tier_tokens = sppasFindTier.aligned_tokens(trs_input)
         tier_input = self.make_word_strain(tier_tokens)
@@ -268,7 +261,7 @@ class sppasSelfRepet(sppasBaseRepet):
         trs_output = self.self_detection(tier_input)
 
         # Create the transcription result
-        trs_output.set_meta('self_repetition_result_of', input_file[0])
+        trs_output.set_meta('self_repetition_result_of', input_files[0])
         self.transfer_metadata(trs_input, trs_output)
 
         if len(self._word_strain) > 0:
@@ -290,7 +283,7 @@ class sppasSelfRepet(sppasBaseRepet):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-srepet")
 

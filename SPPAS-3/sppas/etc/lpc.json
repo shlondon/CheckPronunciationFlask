@@ -12,34 +12,39 @@
       "ext": ".txt",
       "name": "",
       "lang": true
-    },
-    {
-      "path": "lpc",
-      "type": "file",
-      "ext": ".png",
-      "name": "",
-      "lang": false
     }
   ],
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern (time-aligned phonemes)"
+      "text": "Pattern of the file with time-aligned phonemes"
+    },
+    {
+      "id": "inputpattern2",
+      "type": "str",
+      "value": "",
+      "text": "Pattern of the video file"
+    },
+    {
+      "id": "inputpattern3",
+      "type": "str",
+      "value": "-sights",
+      "text": "Pattern of the file with coordinates of the face of the person"
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-lpc",
-      "text": "Output file pattern"
+      "text": "Pattern of the output files"
     },
     {
       "id": "createvideo",
       "type": "bool",
       "value": false,
-      "text": "Tag the video with the code of the key"
+      "text": "Tag the video with the code of the key (needs video+csv)"
     }
 
   ]

@@ -285,6 +285,8 @@ class TestPanelCheckButton(wx.Panel):
 
         btn_check_xs = CheckButton(self, pos=(25, 10), size=(32, 32), name="yes")
         btn_check_xs.Check(True)
+        btn_check_xs.Enable(False)
+        btn_check_xs.Enable(True)
 
         btn_check_s = CheckButton(self, label="disabled", pos=(100, 10), size=(128, 64), name="yes")
         btn_check_s.Enable(False)

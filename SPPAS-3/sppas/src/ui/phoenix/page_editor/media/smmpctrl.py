@@ -197,6 +197,27 @@ class sppasMMPCtrl(sppasPlayerControlsPanel):
         """Return true if the button to show audio waveform is toggled."""
         return self.FindWindow("sound_wave_lines").GetValue()
 
+    def scroll_to_selection(self):
+        """Set visible range to center the selection on screen.
+
+        Duration of the visible part is preserved.
+
+        """
+        # get the duration of the visible part
+        start = self._timeslider.get_visible_start()
+        end = self._timeslider.get_visible_end()
+        dur = end - start
+        wx.LogDebug("current duration: {}".format(dur))
+        # get selection time values to be centered
+        sel_start = self._timeslider.get_selection_start()
+        sel_end = self._timeslider.get_selection_end()
+        # estimate the middle time
+        sel_middle = sel_start + ((sel_end - sel_start) / 2.)
+        shift = dur / 2.
+        wx.LogDebug("selection middle: {}".format(sel_middle))
+        # Set visible range to center the selection without changing the duration
+        self._timeslider.set_visible_range(sel_middle - shift, sel_middle + shift)
+
     # -----------------------------------------------------------------------
     # Construct the panel
     # -----------------------------------------------------------------------
@@ -572,11 +593,7 @@ class sppasMMPCtrl(sppasPlayerControlsPanel):
                 self._timeslider.set_visible_range(start + shift, end + shift)
 
         elif evt_obj.GetName() == "scroll_to_selection":
-            sel_start = self._timeslider.get_selection_start()
-            sel_end = self._timeslider.get_selection_end()
-            sel_middle = sel_start + ((sel_end - sel_start) / 2.)
-            shift = dur / 2.
-            self._timeslider.set_visible_range(sel_middle - shift, sel_middle + shift)
+            self.scroll_to_selection()
 
         elif evt_obj.GetName() == "scroll_zoom_selection":
             sel_start = self._timeslider.get_selection_start()

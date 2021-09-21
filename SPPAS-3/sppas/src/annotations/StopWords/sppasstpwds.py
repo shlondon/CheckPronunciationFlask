@@ -92,7 +92,7 @@ class sppasStopWords(sppasBaseAnnotation):
             elif "tiername" == key:
                 self.set_tiername(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -146,22 +146,6 @@ class sppasStopWords(sppasBaseAnnotation):
             self.logfile.print_message(
                 "No stop-words loaded: {:s}".format(str(e)), indent=1)
 
-    # ----------------------------------------------------------------------
-
-    def input_tier(self, trs_input):
-        """Return the input tier from the input file.
-
-        :param trs_input: (sppasTranscription)
-
-        """
-        tier_spk = trs_input.find(self._options['tiername'], case_sensitive=False)
-        if tier_spk is None:
-            logging.error("Tier with name '{:s}' not found in input file."
-                          "".format(self._options['tiername']))
-            raise NoTierInputError
-
-        return tier_spk
-
     # -----------------------------------------------------------------------
 
     def make_stp_tier(self, tier):
@@ -200,28 +184,50 @@ class sppasStopWords(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        annot_ext = self.get_input_extensions()
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+            if tier is None and fe in annot_ext[0]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = trs_input.find(self._options['tiername'], case_sensitive=False)
+                if tier is not None:
+                    return tier
+
+        # Check input tier
+        logging.error("A tier with name {:s} was not found."
+                      "".format(self._options['tiername']))
+        raise NoTierInputError
+
+    # ----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned tokens
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Time-aligned tokens
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be used
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier = self.input_tier(trs_input)
+        tier = self.get_inputs(input_files)
 
         # Detection
         stp_tier = self.make_stp_tier(tier)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('stopwords_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
-
+        trs_output.set_meta('annotation_result_of', input_files[0])
         trs_output.append(stp_tier)
 
         # Save in a file
@@ -238,10 +244,6 @@ class sppasStopWords(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-stops")
-
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")

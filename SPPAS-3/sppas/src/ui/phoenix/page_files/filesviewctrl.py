@@ -1,33 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.page_files.filesviewctrl.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  A panel to manage files and actions on files.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
-        This banner notice must not be removed.
-        ---------------------------------------------------------------------
+    Use of this software is governed by the GNU Public License, version 3.
 
-    src.ui.phoenix.page_files.filesviewctrl.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -52,7 +60,7 @@ from ..windows import sppasListCtrl
 from ..tools import sppasSwissKnife
 from ..main_events import DataChangedEvent
 
-from .textedit import sppasTextEditDialog, EVT_CLOSE_EDIT
+from .textedit import EVT_CLOSE_EDIT
 
 # ---------------------------------------------------------------------------
 # Internal use of an event, when an item is clicked.
@@ -77,12 +85,6 @@ STATES_ICON_NAMES = {
 
 class FileAnnotIcon(object):
     """Represents the link between a file extension and an icon name.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     All supported file formats of 'anndata' are linked to an icon file.
     All 'wav' files are linked to an icon file.
@@ -159,12 +161,6 @@ class FileAnnotIcon(object):
 
 class FileTreeViewPanel(sppasScrolledPanel):
     """A control to display data files in a tree-spreadsheet style.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     This class manages a sppasWorkspace() instance to add/remove/delete files and
     the wx objects to display it.
@@ -303,25 +299,6 @@ class FileTreeViewPanel(sppasScrolledPanel):
                 # Re-Add it into the data and the panels or not?????
                 wx.LogError("File {!s:s} can't be deleted due to the "
                             "following error: {:s}.".format(filename, str(e)))
-
-    # ------------------------------------------------------------------------
-
-    def EditCheckedFiles(self):
-        """Edit all checked files in a text editor."""
-        checked_fn = self.GetCheckedFiles()
-        checked_files = [fn.id for fn in checked_fn]
-
-        editor = sppasTextEditDialog(self, checked_files)
-        nb_loaded = 0
-        for fn, filename in zip(checked_fn, checked_files):
-            if editor.is_loaded(filename) is True:
-                nb_loaded += 1
-                self.change_state(fn, States().LOCKED)
-
-        if nb_loaded > 0:
-            self.Notify()
-
-        editor.Show()
 
     # ------------------------------------------------------------------------
 
@@ -578,7 +555,6 @@ class FileTreeViewPanel(sppasScrolledPanel):
         self.Bind(EVT_ITEM_CLICKED, self._process_item_clicked)
 
         self.Bind(wx.EVT_COLLAPSIBLEPANE_CHANGED, self.OnCollapseChanged)
-        self.Bind(EVT_CLOSE_EDIT, self._process_editor_closed)
 
     # ------------------------------------------------------------------------
 
@@ -613,29 +589,6 @@ class FileTreeViewPanel(sppasScrolledPanel):
                 panel = self.__get_path_panel(fs)
                 if panel is not None:
                     panel.change_state(fs.get_id(), fs.get_state())
-
-    # ------------------------------------------------------------------------
-
-    def _process_editor_closed(self, event):
-        """Process an event: the editor dialog was closed.
-
-        :param event: (wx.Event)
-
-        """
-        filenames = event.files
-        if isinstance(filenames, (list, tuple)) is False:
-            filenames = [filenames]
-
-        for filename in filenames:
-            filebase = self.__data.get_object(filename)
-            cur_state = filebase.get_state()
-            if cur_state == States().LOCKED:
-                self.change_state(filebase, States().CHECKED)
-
-        self.Notify()
-        textedit = event.GetEventObject()
-        if textedit:
-            textedit.Destroy()
 
     # ------------------------------------------------------------------------
 
@@ -695,12 +648,6 @@ class FileTreeViewPanel(sppasScrolledPanel):
 
 class FilePathCollapsiblePanel(sppasCollapsiblePanel):
     """A panel to display the fp as a list of fr.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 
@@ -990,12 +937,6 @@ class FilePathCollapsiblePanel(sppasCollapsiblePanel):
 
 class FileRootCollapsiblePanel(sppasCollapsiblePanel):
     """A panel to display the fr as a list of fn.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 

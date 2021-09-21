@@ -116,6 +116,7 @@ def read_base64_files():
     namepronunciationNativefile = 'pronunciationNative-palign.csv'
     filesinaudio = os.listdir('./audios')
     number_of_times = 0
+    print('With SPPAS 3.9')
 
     while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
         # Forced alignment

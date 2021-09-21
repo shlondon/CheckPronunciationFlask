@@ -52,6 +52,7 @@ from sppas import sg, lgs
 
 from sppas.src.annotations.FaceClustering.sppasfaceid import sppasFaceIdentifier
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasAnnotationsManager
 
 # ---------------------------------------------------------------------------
@@ -123,10 +124,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("VIDEO"),
-        choices=parameters.get_outformat_extensions("VIDEO"),
+        default=parameters.get_output_extension("VIDEO"),
+        choices=SppasFiles.get_outformat_extensions("VIDEO"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("VIDEO"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("VIDEO"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------

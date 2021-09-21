@@ -1,36 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.SearchIPUs.sppassearchipus.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of Search for IPUs automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.SearchIPUs.sppassearchipus.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -52,6 +57,7 @@ from sppas.src.anndata import sppasLabel
 from sppas.src.anndata import sppasTag
 from sppas.src.anndata import sppasTrsRW
 
+from ..autils import SppasFiles
 from ..annotationsexc import AnnotationOptionError
 from ..baseannot import sppasBaseAnnotation
 from .searchipus import SearchIPUs
@@ -74,19 +80,10 @@ def _info(msg_id):
 class sppasSearchIPUs(sppasBaseAnnotation):
     """SPPAS integration of the IPUs detection.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
-
     """
 
     def __init__(self, log=None):
         """Create a new sppasSearchIPUs instance.
-
-        Log is used for a better communication of the annotation process and its
-        results. If None, logs are redirected to the default logging system.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -133,7 +130,7 @@ class sppasSearchIPUs(sppasBaseAnnotation):
             elif "shift_end" == key:
                 self.set_shift_end(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -345,17 +342,16 @@ class sppasSearchIPUs(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) audio
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Audio
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get audio and the channel we'll work on
-        audio_speech = sppas.src.audiodata.aio.open(input_file[0])
+        audio_speech = sppas.src.audiodata.aio.open(input_files[0])
         framerate = audio_speech.get_framerate()
         n = audio_speech.get_nchannels()
         if n != 1:
@@ -370,11 +366,11 @@ class sppasSearchIPUs(sppasBaseAnnotation):
         # Create the transcription to put the result
         trs_output = sppasTranscription(self.name)
         trs_output.set_meta("media_sample_rate", str(framerate))
-        trs_output.set_meta('search_ipus_result_of', input_file[0])
+        trs_output.set_meta('annotation_result_of', input_files[0])
         trs_output.append(tier)
 
-        extm = os.path.splitext(input_file[0])[1].lower()[1:]
-        media = sppasMedia(os.path.abspath(input_file[0]),
+        extm = os.path.splitext(input_files[0])[1].lower()[1:]
+        media = sppasMedia(os.path.abspath(input_files[0]),
                            mime_type="audio/"+extm)
         tier.set_media(media)
 
@@ -389,7 +385,7 @@ class sppasSearchIPUs(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run_for_batch_processing(self, input_file, opt_input_file):
+    def run_for_batch_processing(self, input_files):
         """Perform the annotation on a file.
 
         This method is called by 'batch_processing'. It fixes the name of the
@@ -397,18 +393,17 @@ class sppasSearchIPUs(sppasBaseAnnotation):
         is cancelled (the file won't be overridden). If not, it calls the run
         method.
 
-        :param input_file: (list of str) the required input
-        :param opt_input_file: (list of str) the optional input
+        :param input_files: (list of str) the inputs to perform a run
         :returns: output file name or None
 
         """
         # Fix input/output file name
-        root_pattern = self.get_out_name(input_file[0])
+        root_pattern = self.get_out_name(input_files[0])
 
         # Is there already an existing output file (in any format)!
         ext = []
-        for e in sppas.src.anndata.aio.extensions_in:
-            if e not in ('.txt', '.hz', '.PitchTier', '.IntensityTier'):
+        for e in sppasTrsRW.annot_extensions():
+            if e not in ('.txt', ):
                 ext.append(e)
         exist_out_name = sppasBaseAnnotation._get_filename(root_pattern, ext)
 
@@ -431,7 +426,7 @@ class sppasSearchIPUs(sppasBaseAnnotation):
 
         try:
             # Execute annotation
-            new_files = self.run(input_file, opt_input_file, root_pattern)
+            new_files = self.run(input_files, root_pattern)
         except Exception as e:
             new_files = list()
             self.logfile.print_message("{:s}\n".format(str(e)), indent=2, status=-1)
@@ -443,4 +438,4 @@ class sppasSearchIPUs(sppasBaseAnnotation):
     @staticmethod
     def get_input_extensions():
         """Extensions that the annotation expects for its input filename."""
-        return sppas.src.audiodata.aio.extensions
+        return [SppasFiles.get_informat_extensions("AUDIO")]

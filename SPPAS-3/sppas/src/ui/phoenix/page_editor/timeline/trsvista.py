@@ -373,7 +373,7 @@ class TranscriptionVista(sppasPanel):
             # Show/Hide tiers
             nb = 0
             for i, child in enumerate(self.GetChildren()):
-                if i in checked_tier_idx:
+                if i in checked_tier_idx and self._check_popup.checkbox.IsItemEnabled(i):
                     nb += 1
                     child.Show()
                 else:

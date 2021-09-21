@@ -51,7 +51,7 @@ from sppas.src.config import cfg
 from sppas.src.config import info
 from sppas.src.config import paths
 from sppas.src.config import Process
-from sppas.src.exceptions.exc import sppasInstallationError
+from sppas.src.config import sppasInstallationError
 from sppas.src.utils.makeunicode import u
 
 from .features import Features

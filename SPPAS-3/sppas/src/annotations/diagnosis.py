@@ -1,35 +1,40 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.diagnosis.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Diagnose if files are appropriate for automatic annotations.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.diagnosis.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -58,12 +63,6 @@ audiodata_ext = [e.lower() for e in sppas.src.audiodata.aio.extensions]
 class sppasDiagnosis:
     """Diagnose if files are appropriate.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2018  Brigitte Bigi
-
     A set of methods to check if files are valid for SPPAS automatic
     annotations. Each method returns a status and a message depending on the
     fact that the given file is matching the requirements.
@@ -88,6 +87,9 @@ class sppasDiagnosis:
         :returns: tuple with (status identifier, message)
 
         """
+        if os.path.exists(filename) is False:
+            return annots.error, info(1008, "annotations")
+
         ext = os.path.splitext(filename)[1]
 
         if ext.lower() in audiodata_ext:
@@ -102,8 +104,7 @@ class sppasDiagnosis:
         if ext.lower() in videodata_ext:
             return sppasDiagnosis.check_video_file(filename)
 
-        message = info(1006, "annotations") + \
-                  (info(1020, "annotations")).format(extension=ext)
+        message = info(1006, "annotations") + (info(1020, "annotations")).format(extension=ext)
         return annots.error, message
 
     # ------------------------------------------------------------------------

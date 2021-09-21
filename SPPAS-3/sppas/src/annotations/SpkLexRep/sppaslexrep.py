@@ -1,35 +1,40 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.SpkLexRep.sppaslexrep.py
+:author:   Brigitte Bigi, Laurent Vouriot
+:contact:  develop@sppas.org
+:summary:  Speaker Lexical Reprise automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.SpkLexRep.sppaslexrep.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -46,7 +51,10 @@ from sppas.src.anndata.aio.aioutils import serialize_labels
 
 from ..SelfRepet.datastructs import DataSpeaker
 from ..SelfRepet.sppasbaserepet import sppasBaseRepet
+from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
+from ..autils import SppasFiles
 from ..searchtier import sppasFindTier
 from ..OtherRepet import OtherRules
 
@@ -55,12 +63,6 @@ from ..OtherRepet import OtherRules
 
 class LexReprise(object):
     """Data structure to store a lexical reprise.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020 Brigitte Bigi
 
     """
 
@@ -110,12 +112,6 @@ class LexReprise(object):
 class sppasLexRep(sppasBaseRepet):
     """SPPAS integration of the speaker lexical variation annotation.
 
-    :author:       Laurent Vouriot, Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020 Brigitte Bigi
-
     Main differences compared to repetitions:
     The span option is used to fix the max number of continuous tokens to analyze.
     The span window has a duration limit.
@@ -131,7 +127,6 @@ class sppasLexRep(sppasBaseRepet):
 
         """
         super(sppasLexRep, self).__init__("lexrep.json", log)
-        self.max_span = 30
         self.__rules = OtherRules(self._stop_words)
 
     # -----------------------------------------------------------------------
@@ -142,16 +137,37 @@ class sppasLexRep(sppasBaseRepet):
         :param options: list of sppasOption instances
 
         """
-        spanduropt = None
         for opt in options:
             key = opt.get_key()
             if "spandur" == key:
                 self.set_span_duration(opt.get_value())
-                spanduropt = opt
-        if spanduropt is not None:
-            options.remove(spanduropt)
 
-        sppasBaseRepet.fix_options(self, options)
+            elif "span" == key:
+                self.set_span(opt.get_value())
+
+            elif "stopwords" == key:
+                self.set_stopwords(opt.get_value())
+
+            elif "alpha" == key:
+                self.set_alpha(opt.get_value())
+
+            elif "pattern" in key:
+                self._options[key] = opt.get_value()
+
+            else:
+                raise AnnotationOptionError(key)
+
+    # -----------------------------------------------------------------------
+
+    def set_span(self, value):
+        """Set the max span, in number of words.
+
+        :param value: (int) Max nb of tokens in a span window.
+
+        """
+        if value < 5 or value > 200:
+            raise Exception("Invalid span value")
+        self._options['span'] = int(value)
 
     # -----------------------------------------------------------------------
 
@@ -162,6 +178,28 @@ class sppasLexRep(sppasBaseRepet):
 
         """
         self._options["spandur"] = value
+
+    # -----------------------------------------------------------------------
+
+    def set_stopwords(self, value):
+        """Set the stopwords option.
+
+        :param value: (bool) Enable the fact to add estimated stopwords
+
+        """
+        self._options['stopwords'] = bool(value)
+
+    # -----------------------------------------------------------------------
+
+    def set_alpha(self, value):
+        """Set the alpha option.
+
+        :param value: (float) Coefficient to estimated stopwords
+
+        """
+        if value < 0.1 or value > 2.:
+            raise Exception("Invalid alpha value")
+        self._options['alpha'] = float(value)
 
     # -----------------------------------------------------------------------
 
@@ -410,65 +448,76 @@ class sppasLexRep(sppasBaseRepet):
         return tier1, tier2
 
     # -----------------------------------------------------------------------
-    # Patterns
-    # -----------------------------------------------------------------------
-
-    def get_pattern(self):
-        """Pattern this annotation uses in an output filename."""
-        return self._options.get("outputpattern", "-rms")
-
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")
-
-    # -----------------------------------------------------------------------
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return 2 tiers with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        if len(input_files) != 2:
+            raise Exception("Invalid format of input files.")
+
+        tier_src = None
+        for filename in input_files[0]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_src is None:
+                tier_src = sppasFindTier.aligned_tokens(trs_input)
+        if tier_src is None:
+            logging.error("A source tier with time-aligned tokens was expected but not found.")
+            raise NoTierInputError
+
+        tier_echo = None
+        for filename in input_files[1]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_echo is None:
+                tier_echo = sppasFindTier.aligned_tokens(trs_input)
+        if tier_echo is None:
+            logging.error("An echo tier with time-aligned tokens was expected but not found.")
+            raise NoTierInputError
+
+        return tier_src, tier_echo
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned tokens of 2 files
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of list of str) time-aligned tokens of 2 files
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be used
-        parser = sppasTrsRW(input_file[0])
-        trs_input1 = parser.read()
-        tier_tokens = sppasFindTier.aligned_tokens(trs_input1)
-        tier_input1 = self.make_word_strain(tier_tokens)
-
-        # Get the tier to be used
-        parser = sppasTrsRW(input_file[1])
-        trs_input2 = parser.read()
-        tier_tokens = sppasFindTier.aligned_tokens(trs_input2)
-        tier_input2 = self.make_word_strain(tier_tokens)
+        tier_tokens_src, tier_tokens_echo = self.get_inputs(input_files)
 
         # Reprise Automatic Detection - i.e. a repeated passage of lexical entries
-        tier1, tier2 = self.lexical_variation_detect(tier_input1, tier_input2)
+        tier1, tier2 = self.lexical_variation_detect(tier_tokens_src, tier_tokens_echo)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('speaker_lexrep_result_of_spk1', input_file[0])
-        trs_output.set_meta('spkeaker_lexrep_result_of_spk2', input_file[1])
-        self.transfer_metadata(trs_input1, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0][0])
 
         if len(self._word_strain) > 0:
-            tier_input1.set_name(tier_input1.get_name() + "-1")
-            trs_output.append(tier_input1)
+            tier_tokens_src.set_name(tier_tokens_src.get_name() + "-1")
+            trs_output.append(tier_tokens_src)
         if self._options['stopwords'] is True:
-            stopwords1 = self.make_stop_words(tier_input1)
+            stopwords1 = self.make_stop_words(tier_tokens_src)
             stopwords1.set_name(stopwords1.get_name() + "-1")
             trs_output.append(stopwords1)
         trs_output.append(tier1)
 
         if len(self._word_strain) > 0:
-            tier_input2.set_name(tier_input2.get_name() + "-2")
-            trs_output.append(tier_input2)
+            tier_tokens_echo.set_name(tier_tokens_echo.get_name() + "-2")
+            trs_output.append(tier_tokens_echo)
         if self._options['stopwords'] is True:
-            stopwords2 = self.make_stop_words(tier_input2)
+            stopwords2 = self.make_stop_words(tier_tokens_echo)
             stopwords2.set_name(stopwords2.get_name() + "-2")
             trs_output.append(stopwords2)
         trs_output.append(tier2)
@@ -485,9 +534,13 @@ class sppasLexRep(sppasBaseRepet):
 
         return trs_output
 
+    # -----------------------------------------------------------------------
+    # Patterns
+    # -----------------------------------------------------------------------
 
-
-
+    def get_output_pattern(self):
+        """Pattern this annotation uses in an output filename."""
+        return self._options.get("outputpattern", "-rms")
 
 
 

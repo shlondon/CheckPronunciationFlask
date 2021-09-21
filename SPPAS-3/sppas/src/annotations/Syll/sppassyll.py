@@ -1,38 +1,46 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.Syll.sppassyll.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of Syllabification automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.sppassyll.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
+
+import os
+import logging
 
 from sppas.src.config import symbols
 from sppas.src.config import annots
@@ -52,6 +60,7 @@ from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 
 from .syllabify import Syllabifier
 
@@ -60,12 +69,6 @@ from .syllabify import Syllabifier
 
 class sppasSyll(sppasBaseAnnotation):
     """SPPAS integration of the automatic syllabification annotation.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 
@@ -283,24 +286,48 @@ class sppasSyll(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        intervals = None
+
+        for filename in input_files:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if intervals is None:
+                intervals = trs_input.find(self._options['tiername'])
+            if tier is None:
+                tier = sppasFindTier.aligned_phones(trs_input)
+
+        # Check input tier
+        if tier is None:
+            logging.error("A tier with a time-aligned phonemes was not found.")
+            raise NoTierInputError
+
+        return tier, intervals
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned phonemes
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Time-aligned phonemes
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to syllabify
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier_input = sppasFindTier.aligned_phones(trs_input)
+        tier_input, intervals = self.get_inputs(input_files)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('syllabification_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
+        trs_output.set_meta('syllabification_result_of', input_files[0])
 
         # Syllabify the tier
         if self._options['usesphons'] is True:
@@ -311,7 +338,6 @@ class sppasSyll(sppasBaseAnnotation):
 
         # Extra tier: syllabify between given intervals
         if self._options['usesintervals'] is True:
-            intervals = trs_input.find(self._options['tiername'])
             if intervals is None:
                 self.logfile.print_message(
                     (info(1264, "annotations")).format(tiername=self._options['tiername']),
@@ -342,7 +368,7 @@ class sppasSyll(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-syll")
 

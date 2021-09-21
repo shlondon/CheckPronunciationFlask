@@ -39,8 +39,8 @@ import wx
 
 from sppas.src.config import msg
 from sppas.src.config import paths
+from sppas.src.config import sppasTypeError
 from sppas.src.utils import u
-from sppas.src.exceptions import sppasTypeError
 from sppas.src.wkps import sppasWorkspace, States
 
 from ..windows import sppasPanel
@@ -350,11 +350,15 @@ class sppasEditorPanel(sppasPanel):
         tb.AddButton("open", MSG_OPEN)
         tb.AddButton("save_all", MSG_SAVE)
         tb.AddButton("close", MSG_CLOSE)
+        tb.AddSpacer(1)
 
         bd1 = tb.AddButton("way_up_down")
         bd1.SetFocusColour(wx.Colour(self.GetForegroundColour()))
         bd2 = tb.AddButton("way_left_right")
         bd2.SetFocusColour(wx.Colour(self.GetForegroundColour()))
+        bd3 = tb.AddButton("search")
+        bd3.SetFocusColour(wx.Colour(self.GetForegroundColour()))
+        tb.AddSpacer(1)
 
         return tb
 
@@ -447,6 +451,9 @@ class sppasEditorPanel(sppasPanel):
         elif btn_name == "way_left_right":
             self._editpanel.swap_annlist_panels()
 
+        elif btn_name == "search":
+            self._editpanel.open_search()
+
         else:
             event.Skip()
 
@@ -487,8 +494,19 @@ class sppasEditorPanel(sppasPanel):
                 self.save_files()
             elif key_code == 87:  # alt+w Close the files
                 self.close_files()
-
-        event.Skip()
+            else:
+                event.Skip()
+        elif event.ControlDown() or event.CmdDown():
+            if key_code == 70:  # ctrl+f Open the search dialog
+                self._editpanel.open_search()
+            if event.ShiftDown() is False and key_code == 71:  # ctrl+g Search for next occurrence
+                self._editpanel.search_for(forward=True)
+            if event.ShiftDown() is False and key_code == 71:  # ctrl+G Search for previous occurrence
+                self._editpanel.search_for(backward=True)
+            else:
+                event.Skip()
+        else:
+            event.Skip()
 
 # ----------------------------------------------------------------------------
 # Panel for tests
@@ -502,6 +520,7 @@ class TestPanel(sppasPanel):
         f1 = os.path.join(paths.samples, "annotation-results", "samples-fra", "F_F_B003-P8-palign.xra")
         f2 = os.path.join(paths.samples, "annotation-results", "samples-fra",  "F_F_B003-P9-palign.xra")
         f3 = os.path.join(paths.samples, "samples-fra", "F_F_B003-P8.wav")
+        f4 = os.path.join(paths.samples, "annotation-results", "samples-fra", "F_F_B003-P8-momel.PitchTier")
 
         data = sppasWorkspace()
         fn1 = data.add_file(f1)
@@ -510,6 +529,8 @@ class TestPanel(sppasPanel):
         data.set_object_state(States().CHECKED, fn2[0])
         fn3 = data.add_file(f3)
         data.set_object_state(States().CHECKED, fn3[0])
+        #fn4 = data.add_file(f4)
+        #data.set_object_state(States().CHECKED, fn4[0])
 
         panel = sppasEditorPanel(self)
         panel.set_data(data)

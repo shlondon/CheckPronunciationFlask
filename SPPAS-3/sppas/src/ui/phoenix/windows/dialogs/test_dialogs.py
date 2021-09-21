@@ -1,36 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.windows.buttons.test_buttons.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Test of dialogs.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.ui.phoenix.windows.buttons.test_buttons.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -40,6 +45,7 @@ import logging
 from sppas.src.config import sppasAppConfig
 from sppas.src.ui.phoenix.main_settings import WxAppSettings
 
+import sppas.src.ui.phoenix.windows.dialogs.dialog as dialog
 from sppas.src.ui.phoenix.windows.dialogs.messages import TestPanelMessageDialog
 from sppas.src.ui.phoenix.windows.dialogs.entries import TestPanelEntriesDialog
 from sppas.src.ui.phoenix.windows.dialogs.progress import TestPanelProgressDialog
@@ -52,12 +58,6 @@ from sppas.src.ui.phoenix.windows.dialogs.progress import TestPanelProgressDialo
 class TestPanel(wx.Choicebook):
     """Choicebook to test a bunch of TestPanelXXX() panels.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     """
 
     def __init__(self, parent):
@@ -68,6 +68,7 @@ class TestPanel(wx.Choicebook):
 
         # Make the bunch of test panels
         panels = list()
+        panels.append(dialog.TestPanel(self))
         panels.append(TestPanelMessageDialog(self))
         panels.append(TestPanelEntriesDialog(self))
         panels.append(TestPanelProgressDialog(self))
@@ -117,12 +118,6 @@ class TestPanel(wx.Choicebook):
 
 class TestApp(wx.App):
     """Application to test a TestPanel().
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     """
 

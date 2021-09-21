@@ -31,7 +31,7 @@
 
 """
 
-from sppas.src.exceptions import sppasKeyError
+from sppas.src.config import sppasKeyError
 
 from .num_base import sppasNumBase
 from .num_jpn import sppasNumJapanese
@@ -43,7 +43,6 @@ from .num_vie import sppasNumVietnamese
 from .num_cmn import sppasNumMandarinChinese
 from .por_num import sppasNumPortuguese
 from .num_pol import sppasNumPolish
-
 from .num_asian_lang import sppasNumAsianType
 from .num_und import sppasNumUnd
 from .num_europ_lang import sppasNumEuropeanType

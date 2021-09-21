@@ -45,8 +45,8 @@
 
 import wx
 
+from sppas.src.config import sppasTypeError
 from sppas.src.wkps import sppasWorkspace
-from sppas.src.exceptions import sppasTypeError
 
 from ..windows import sppasPanel
 from ..windows import sppasStaticLine

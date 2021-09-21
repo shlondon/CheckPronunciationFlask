@@ -43,7 +43,7 @@ import logging
 import collections
 import os
 
-from sppas.src.exceptions import sppasError
+from sppas.src.config import sppasError
 from sppas.src.calculus import symbols_to_items
 from sppas.src.calculus import tansey_linear_regression
 from sppas.src.calculus import linear_fct

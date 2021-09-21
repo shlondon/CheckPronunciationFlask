@@ -38,8 +38,8 @@
 import re
 
 from sppas.src.config import symbols
-from sppas.src.exceptions import RangeBoundsException
-from sppas.src.exceptions import IndexRangeException
+from sppas.src.config import RangeBoundsException
+from sppas.src.config import IndexRangeException
 from sppas.src.utils import sppasUnicode
 
 # ---------------------------------------------------------------------------

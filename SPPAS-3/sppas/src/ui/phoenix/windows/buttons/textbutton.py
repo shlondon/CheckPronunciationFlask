@@ -160,7 +160,7 @@ class TextButton(BaseButton):
             return
 
         if self._align == wx.ALIGN_LEFT:
-            self._draw_label(dc, gc, self._vert_border_width, ((h - th) // 2) + self._horiz_border_width)
+            self._draw_label(dc, gc, self._vert_border_width+1, ((h - th) // 2) + self._horiz_border_width)
 
         elif self._align == wx.ALIGN_RIGHT:
             self._draw_label(dc, gc, w - tw - self._vert_border_width, ((h - th) // 2) + self._horiz_border_width)

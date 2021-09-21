@@ -52,6 +52,7 @@ from sppas import sg, lgs
 
 from sppas.src.annotations import sppasFaceSights
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasAnnotationsManager
 
 # ---------------------------------------------------------------------------
@@ -105,6 +106,11 @@ if __name__ == "__main__":
         help='Input image.')
 
     group_io.add_argument(
+        "-c",
+        metavar="file",
+        help='Input CSV file with face coordinates.')
+
+    group_io.add_argument(
         "-o",
         metavar="file",
         help='Output base name.')
@@ -129,10 +135,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("IMAGE"),
-        choices=parameters.get_outformat_extensions("IMAGE"),
+        default=parameters.get_output_extension("IMAGE"),
+        choices=SppasFiles.get_outformat_extensions("IMAGE"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("IMAGE"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("IMAGE"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------
@@ -174,19 +180,22 @@ if __name__ == "__main__":
     if args.quiet:
         lgs.set_log_level(30)
 
-
     # Get options from arguments
     # --------------------------
 
     arguments = vars(args)
     for a in arguments:
-        if a not in ('i', 'o', 'r', 'R', 'e', 'I', 'quiet', 'log'):
+        if a not in ('i', 'c', 'o', 'r', 'R', 'e', 'I', 'quiet', 'log'):
             parameters.set_option_value(ann_step_idx, a, str(arguments[a]))
 
     if args.i:
 
         # Perform the annotation on a single file
         # ---------------------------------------
+
+        if not args.c:
+            print("argparse.py: error: option -c is required with option -i")
+            sys.exit(1)
 
         if not args.r:
             print("argparse.py: error: option -r is required with option -i")
@@ -201,9 +210,9 @@ if __name__ == "__main__":
         ann.fix_options(parameters.get_options(ann_step_idx))
 
         if args.o:
-            ann.run([args.i], output=args.o)
+            ann.run([args.i, args.c], output=args.o)
         else:
-            coords = ann.run([args.i])
+            coords = ann.run([args.i, args.c])
             for c in coords:
                 print(c)
 

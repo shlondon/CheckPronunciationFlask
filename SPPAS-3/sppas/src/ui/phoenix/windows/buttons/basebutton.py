@@ -484,6 +484,8 @@ class TestPanelBaseButton(wx.Panel):
 
         img = os.path.join(paths.etc, "images", "trbg1.png")
         wi3 = BaseCheckButton(self, pos=(110, 300), size=(100, 100), name="wi3")
+        wi3.Check(True)
+        wi3.Enable(False)
         wi3.Enable(True)
         wi3.SetBackgroundColour(wx.Colour(28, 200, 166))
         wi3.SetBackgroundImage(img)

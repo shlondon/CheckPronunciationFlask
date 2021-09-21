@@ -17,13 +17,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-syll",
-      "text": "Input file pattern (syllabification)"
+      "text": "Input pattern of the file with syllabification."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-tga",
-      "text": "Output file pattern"
+      "text": "Output pattern of the file with TGA."
     },
     {
       "id": "original",

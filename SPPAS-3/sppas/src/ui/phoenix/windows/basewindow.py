@@ -446,7 +446,6 @@ class sppasWindow(sppasImageDCWindow):
     def GetPenBackgroundColour(self):
         """Get the background color for the brush.
 
-
         returned background is the normal background if the window is enabled but
         lightness and transparency is modified if the window is disabled or
         selected.
@@ -460,7 +459,7 @@ class sppasWindow(sppasImageDCWindow):
         if self.IsEnabled() is True:
             return color
 
-        return self.GetHighlightedColour(color, 40)
+        return self.GetHighlightedColour(color, 5)
 
     # -----------------------------------------------------------------------
 

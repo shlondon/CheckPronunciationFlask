@@ -105,4 +105,4 @@ class TestIntervalsRMS(unittest.TestCase):
         rms.set_tiername("Tokens")
         audio_file = os.path.join(DATA, "oriana1.wav")
         trs_file = os.path.join(DATA, "oriana1-token.xra")
-        out = rms.run([audio_file, trs_file], None, None)
+        out = rms.run([audio_file, trs_file])

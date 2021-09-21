@@ -37,8 +37,8 @@ import os
 import glob
 from datetime import datetime
 
-from sppas.src.exceptions.exc import sppasTypeError
-from sppas.src.exceptions.exc import sppasValueError
+from sppas.src.config import sppasTypeError
+from sppas.src.config import sppasValueError
 
 from .fileref import sppasCatReference
 from .wkpexc import FileRootValueError, FileOSError, PathTypeError, FilesMatchingValueError

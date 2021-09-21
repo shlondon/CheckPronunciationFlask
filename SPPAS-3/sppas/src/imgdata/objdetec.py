@@ -44,11 +44,11 @@ import os
 import numpy
 import cv2
 
-from sppas.src.exceptions import sppasError
-from sppas.src.exceptions import sppasTypeError
-from sppas.src.exceptions import sppasIOError
-from sppas.src.exceptions import IntervalRangeException
-from sppas.src.exceptions import IOExtensionError
+from sppas.src.config import sppasError
+from sppas.src.config import sppasTypeError
+from sppas.src.config import sppasIOError
+from sppas.src.config import IntervalRangeException
+from sppas.src.config import IOExtensionError
 from sppas.src.config import msg
 
 from .coordinates import sppasCoords

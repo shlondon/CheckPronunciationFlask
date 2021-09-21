@@ -41,9 +41,9 @@
 
 import logging
 
-from sppas.src.exceptions import NegativeValueError
-from sppas.src.exceptions import IndexRangeException
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import NegativeValueError
+from sppas.src.config import IndexRangeException
+from sppas.src.config import sppasTypeError
 from sppas.src.imgdata import sppasImage
 
 from .video import sppasVideoReader

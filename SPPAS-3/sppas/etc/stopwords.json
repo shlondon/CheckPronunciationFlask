@@ -23,19 +23,19 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern"
+      "text": "Pattern of the file to be analyzed."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-stops",
-      "text": "Output file pattern"
+      "text": "Pattern of the file with identified stop words."
     },
     {
       "id": "tiername",
       "type": "str",
       "value": "TokensAlign",
-      "text": "Tier to estimate if tags are relevant"
+      "text": "Name of the tier to estimate if tags are either relevant or stop-words."
     },
     {
       "id": "alpha",

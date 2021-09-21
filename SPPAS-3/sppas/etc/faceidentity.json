@@ -14,22 +14,22 @@
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
       "type": "str",
       "value": "",
-      "text": "Input file pattern of the video"
+      "text": "Input pattern of the video file."
     },
     {
-      "id": "inputoptpattern",
+      "id": "inputpattern2",
       "type": "str",
       "value": "-face",
-      "text": "Input pattern of the CSV file with detected faces"
+      "text": "Input pattern of the CSV file with detected faces."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-ident",
-      "text": "Output file pattern"
+      "text": "Output file pattern with identified persons."
     },
     {
       "id": "fdmin",

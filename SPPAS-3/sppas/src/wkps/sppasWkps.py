@@ -41,15 +41,13 @@ import logging
 import shutil
 
 from sppas.src.config import paths
-from sppas.src.exceptions import sppasIndexError
-
+from sppas.src.config import sppasIndexError
 from sppas.src.utils.makeunicode import sppasUnicode
 
 from .wkpexc import FileTypeError
 from .wkpexc import WkpExtensionError, WkpIdValueError
 from .wkpexc import WkpExportBlankError, WkpDeleteBlankError, WkpRenameBlankError, WkpSaveBlankError
 from .wkpexc import WkpExportValueError, WkpNameError, WkpFileError
-
 from .workspace import sppasWorkspace
 from .wio.wkpreadwrite import sppasWkpRW
 

@@ -31,7 +31,7 @@
 
 """
 
-from sppas.src.exceptions import sppasValueError, sppasTypeError
+from sppas.src.config import sppasValueError, sppasTypeError
 from sppas.src.resources import sppasDictRepl
 
 # ---------------------------------------------------------------------------

@@ -43,7 +43,7 @@ import logging
 import os
 from collections import OrderedDict
 
-from sppas.src.exceptions import IOExtensionError
+from sppas.src.config import IOExtensionError
 from sppas.src.utils.makeunicode import u
 from sppas.src.utils.datatype import sppasTime
 

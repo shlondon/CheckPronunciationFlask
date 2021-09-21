@@ -52,6 +52,9 @@ from sppas import sg, lgs
 from sppas.src.anndata.aio.aioutils import serialize_labels
 from sppas.src.annotations import sppasReOcc
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
+from sppas.src.annotations import sppasAnnotationsManager
+from sppas.src.wkps import sppasWkpRW
 
 # ---------------------------------------------------------------------------
 
@@ -87,7 +90,33 @@ if __name__ == "__main__":
     # Add arguments for input/output files
     # ------------------------------------
 
-    group_io = parser.add_argument_group('Files')
+    group_wkp = parser.add_argument_group('Files (auto)')
+
+    group_wkp.add_argument(
+        "-w",
+        metavar="wkp",
+        help='Workspace.')
+
+    group_wkp.add_argument(
+        "-I",
+        action='append',
+        metavar="file",
+        help='Input file')
+
+    group_wkp.add_argument(
+        "-e",
+        metavar=".ext",
+        default=parameters.get_output_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT_ANNOT"),
+        help='Output file extension. One of: {:s}'
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT_ANNOT"))))
+
+    group_wkp.add_argument(
+        "--log",
+        metavar="file",
+        help="File name for a Procedure Outcome Report (default: None)")
+
+    group_io = parser.add_argument_group('Files (manual)')
 
     group_io.add_argument(
         "-i",
@@ -140,7 +169,7 @@ if __name__ == "__main__":
 
     arguments = vars(args)
     for a in arguments:
-        if a not in ('i', 'o', 's', 'quiet'):
+        if a not in ('w', 'I', 'e', 'i', 'o', 's', 'quiet', 'log'):
             parameters.set_option_value(ann_step_idx, a, str(arguments[a]))
             o = parameters.get_step(ann_step_idx).get_option_by_key(a)
 
@@ -153,18 +182,40 @@ if __name__ == "__main__":
         # Perform the annotation on a single file
         # ---------------------------------------
 
+        inputs = ([args.i], [args.s])
         ann = sppasReOcc(log=None)
         ann.fix_options(parameters.get_options(ann_step_idx))
         if args.o:
-            ann.run([args.i, args.s], output=args.o)
+            ann.run(inputs, output=args.o)
         else:
-            trs = ann.run([args.i, args.s])
+            trs = ann.run(inputs)
             for tier in trs:
                 for a in tier:
                     print("{} {} {:s}".format(
                         a.get_location().get_best().get_begin().get_midpoint(),
                         a.get_location().get_best().get_end().get_midpoint(),
                         serialize_labels(a.get_labels(), separator=" ")))
+
+    elif args.w or args.I:
+
+        # Load an existing workspace
+        if args.w:
+            parser = sppasWkpRW(args.w)
+            wkp = parser.read()
+            parameters.set_workspace(wkp)
+
+        # Add input files to the workspace
+        if args.I:
+            for f in args.I:
+                parameters.add_to_workspace(os.path.abspath(f))
+
+        # Fix the output file extension and others
+        parameters.set_output_extension(args.e, "ANNOT")
+        parameters.set_report_filename(args.log)
+
+        # Perform the annotation
+        process = sppasAnnotationsManager()
+        process.annotate(parameters)
 
     else:
 

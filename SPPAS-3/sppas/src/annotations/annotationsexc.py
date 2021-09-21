@@ -160,6 +160,23 @@ class NoTierInputError(IOError):
 # -----------------------------------------------------------------------
 
 
+class NoChannelInputError(IOError):
+    """:ERROR 1036:.
+
+    Missing input audio channel. Please read the documentation.
+
+    """
+
+    def __init__(self):
+        self.parameter = error(1036) + \
+                         (error(1036, "annotations"))
+
+    def __str__(self):
+        return repr(self.parameter)
+
+# -----------------------------------------------------------------------
+
+
 class BadInputError(TypeError):
     """:ERROR 1040:.
 

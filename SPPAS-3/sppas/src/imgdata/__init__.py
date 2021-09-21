@@ -59,9 +59,9 @@ when a class is instantiated.
 import logging
 
 from sppas.src.config import cfg
-from sppas.src.exceptions import sppasEnableFeatureError
-from sppas.src.exceptions import sppasPackageFeatureError
-from sppas.src.exceptions import sppasPackageUpdateFeatureError
+from sppas.src.config import sppasEnableFeatureError
+from sppas.src.config import sppasPackageFeatureError
+from sppas.src.config import sppasPackageUpdateFeatureError
 
 # Store the rectangle and a score of an image. No external dependency.
 from .coordinates import sppasCoords

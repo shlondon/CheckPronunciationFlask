@@ -60,7 +60,6 @@ sppas_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, sppas_dir)
 
 from sppas.src.config import *
-from sppas.src.exceptions import *
 from sppas.src.utils import *
 from sppas.src.structs import *
 from sppas.src.calculus import *

@@ -29,11 +29,12 @@
 
         ---------------------------------------------------------------------
 
-    src.ui.phoenix.windows.media.multiplayer.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.ui.phoenix.windows.media.multiplayer.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    DEPRECATED: too many problems with the media back-ends under MacOS
-    and Windows. Only Gstreamer under Linux is really efficient.
+DEPRECATED: too many problems with the media back-ends under MacOS
+and Windows.
+* * *  Only Gstreamer under Linux is really efficient.  * * *
 
 """
 
@@ -42,7 +43,7 @@ import wx
 import wx.media
 
 from sppas.src.config import paths
-from sppas.src.exceptions.exc import IntervalRangeException
+from sppas.src.config import IntervalRangeException
 
 from sppas.src.ui.phoenix.windows.panels import sppasPanel
 from sppas.src.ui.phoenix.page_editor.media.deprecated import sppasMediaCtrl

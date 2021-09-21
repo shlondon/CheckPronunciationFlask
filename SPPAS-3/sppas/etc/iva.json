@@ -14,22 +14,22 @@
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
       "type": "str",
       "value": "",
-      "text": "Input file pattern"
+      "text": "Input pattern of the file with pitch values."
     },
     {
-      "id": "inputoptpattern",
+      "id": "inputpattern2",
       "type": "str",
       "value": "-palign",
-      "text": "Optional input file pattern"
+      "text": "Input pattern of the file with segments."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-iva",
-      "text": "Output file pattern"
+      "text": "Output file pattern with interval values analysis results."
     },
     {
       "id": "values",

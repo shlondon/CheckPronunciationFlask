@@ -59,6 +59,7 @@ from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyOutputError
+from ..autils import SppasFiles
 
 from .lpckeys import CuedSpeechKeys
 from .lpcvideo import CuedSpeechVideoTagger
@@ -86,7 +87,7 @@ class sppasCuedSpeech(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def load_resources(self, config_filename, image_filename, **kwargs):
+    def load_resources(self, config_filename, **kwargs):
         """Fix the keys from a configuration file.
 
         :param config_filename: Name of the configuration file with the keys
@@ -114,7 +115,7 @@ class sppasCuedSpeech(sppasBaseAnnotation):
             if "createvideo" == key:
                 self.set_create_video(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -266,24 +267,22 @@ class sppasCuedSpeech(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned phonemes, video file
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) time-aligned phonemes, and optionally video, csv files
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
         # Get the tier from which we'll generate LPC keys
-        parser = sppasTrsRW(input_file[0])
+        parser = sppasTrsRW(input_files[0])
         trs_input = parser.read()
         tier_input = sppasFindTier.aligned_phones(trs_input)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('lpc_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0])
 
         # Create the tier with the lpc syllables
         tier_lpc = self.convert(tier_input)
@@ -294,9 +293,9 @@ class sppasCuedSpeech(sppasBaseAnnotation):
         trs_output.append(tier_cv_keys)
 
         # Add sppasMedia into the output tiers
-        if len(opt_input_file) > 0:
-            extm = os.path.splitext(opt_input_file[0])[1].lower()[1:]
-            media = sppasMedia(os.path.abspath(opt_input_file[0]),
+        if len(input_files) > 1:
+            extm = os.path.splitext(input_files[1])[1].lower()[1:]
+            media = sppasMedia(os.path.abspath(input_files[1]),
                                mime_type="video/" + extm)
             tier_lpc.set_media(media)
             tier_key.set_media(media)
@@ -305,9 +304,9 @@ class sppasCuedSpeech(sppasBaseAnnotation):
         # Extra result: create a video with the keys
         if self._options['createvideo']:
             do_vid = False
-            if len(opt_input_file) > 1:
-                video = opt_input_file[0]
-                sights = opt_input_file[1]
+            if len(input_files) > 2:
+                video = input_files[1]
+                sights = input_files[2]
                 if video is not None and sights is not None:
                     do_vid = True
                     self.make_video(video, sights, tier_cv_keys, output)
@@ -315,7 +314,7 @@ class sppasCuedSpeech(sppasBaseAnnotation):
                 self.logfile.print_message(
                     "The option to tag the video was enabled but no video/csv "
                     "was found related to the annotated file {}"
-                    "".format(input_file[0]), status=-1)
+                    "".format(input_files[0]), status=-1)
 
         # Save in a file
         if output is not None:
@@ -331,17 +330,28 @@ class sppasCuedSpeech(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-lpc")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-palign")
+        return [
+            self._options.get("inputpattern", "-palign"),
+            "",                                                # video
+            self._options.get("optinputpattern", "-sights"),   # csv
+            ]
 
-    def get_opt_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("optinputpattern", "-sights")
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def get_input_extensions():
+        """Extensions that the annotation expects for its input filename."""
+        return [
+            SppasFiles.get_informat_extensions("ANNOT_ANNOT"),
+            SppasFiles.get_informat_extensions("VIDEO"),
+            [".csv"]
+            ]
 
     # -----------------------------------------------------------------------
     # Utilities:

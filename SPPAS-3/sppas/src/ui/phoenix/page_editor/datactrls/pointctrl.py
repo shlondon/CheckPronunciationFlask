@@ -44,7 +44,7 @@ import enum
 import wx
 import wx.lib.newevent
 
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.anndata import sppasPoint
 from sppas.src.ui.phoenix.windows import sppasWindow, WindowState
 from sppas.src.ui.phoenix.windows.cursors import sppasCursor

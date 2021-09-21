@@ -38,14 +38,15 @@
 
 """
 
+import logging
 from sppas.src.utils import sppasUnicode
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
 from sppas.src.anndata import sppasTag
 
 from ..annotationsexc import AnnotationOptionError
-from ..annotationsexc import EmptyInputError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 from ..baseannot import sppasBaseAnnotation
 
 from .overspeech import OverActivity
@@ -87,7 +88,7 @@ class sppasOverActivity(sppasBaseAnnotation):
             elif "ignore" == key:
                 self.set_out_items(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -169,39 +170,63 @@ class sppasOverActivity(sppasBaseAnnotation):
     # Apply the annotation on a given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return 2 tiers with name given in options.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        if len(input_files) != 2:
+            raise Exception("Invalid format of input files.")
+
+        tier_src = None
+        for filename in input_files[0]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_src is None:
+                tier_src = trs_input.find(self._options['tiername'], case_sensitive=False)
+        if tier_src is None:
+            logging.error("A tier with name {:s} was expected but not found."
+                          "".format(self._options['tiername']))
+            raise NoTierInputError
+
+        tier_echo = None
+        for filename in input_files[1]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_echo is None:
+                tier_echo = trs_input.find(self._options['tiername'], case_sensitive=False)
+        if tier_echo is None:
+            logging.error("A tier with name {:s} was expected but not found."
+                          "".format(self._options['tiername']))
+            raise NoTierInputError
+
+        return tier_src, tier_echo
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        Input file is a tuple with 2 files:
+        Input files is a list with 2 files:
         the activity of speaker 1 and the activity of the speaker 2.
 
-        :param input_file: (list of str) (time-aligned items, time-aligned items)
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Time-aligned items, Time-aligned items
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be used
-        parser1 = sppasTrsRW(input_file[0])
-        trs_input1 = parser1.read()
-        parser2 = sppasTrsRW(input_file[1])
-        trs_input2 = parser2.read()
-
-        tier_spk1 = trs_input1.find(self._options['tiername'], case_sensitive=False)
-        tier_spk2 = trs_input2.find(self._options['tiername'], case_sensitive=False)
-
-        if tier_spk1 is None or tier_spk2 is None:
-            raise Exception("Tier with name '{:s}' not found in input files."
-                            "".format(self._options['tiername']))
+        tier_spk1, tier_spk2 = self.get_inputs(input_files)
 
         # Overlaps Automatic Detection
         new_tier = self.detection(tier_spk1, tier_spk2)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('overlaps_result_of_src', input_file[0])
-        trs_output.set_meta('overlaps_result_of_echo', input_file[1])
-        self.transfer_metadata(trs_input1, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0][0])
         trs_output.append(new_tier)
 
         # Save in a file
@@ -218,10 +243,10 @@ class sppasOverActivity(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-overlaps")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-activity")
+        return [self._options.get("inputpattern", "-activity")]

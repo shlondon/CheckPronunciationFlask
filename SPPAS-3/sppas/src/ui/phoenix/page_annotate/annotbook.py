@@ -1,51 +1,56 @@
-# -*- coding: UTF-8 -*-
+# -*- coding : UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.page_annotate.annotbook.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  The GUI main annotation page: a notebook.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    ui.phoenix.page_annotate.annotbook.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
+import logging
 import wx
 
 from sppas.src.config import annots
-from sppas.src.exceptions import sppasTypeError
-
+from sppas.src.config import sppasTypeError
 from sppas.src.annotations import sppasParam
 from sppas.src.wkps import sppasWorkspace
 
 from ..windows.book import sppasSimplebook
 from ..main_events import DataChangedEvent, EVT_DATA_CHANGED
 
-from .annotevent import EVT_PAGE_CHANGE
+from .annotevent import EVT_ANNOT_PAGE_CHANGE
 from .annotselect import sppasAnnotationsPanel
 from .annotaction import sppasActionAnnotatePanel
 from .annotlog import sppasLogAnnotatePanel
@@ -55,12 +60,6 @@ from .annotlog import sppasLogAnnotatePanel
 
 class sppasAnnotateBook(sppasSimplebook):
     """Create a book to annotate automatically the selected files.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     There's no event for the change of param: the params of the current page
     are set to the other ones when "show_page()" is called.
@@ -141,7 +140,7 @@ class sppasAnnotateBook(sppasSimplebook):
         self.Bind(EVT_DATA_CHANGED, self._process_data_changed)
 
         # Change the displayed page
-        self.Bind(EVT_PAGE_CHANGE, self._process_page_change)
+        self.Bind(EVT_ANNOT_PAGE_CHANGE, self._process_page_change)
 
     # ------------------------------------------------------------------------
 
@@ -152,13 +151,15 @@ class sppasAnnotateBook(sppasSimplebook):
 
         """
         try:
-            destination = event.to_page
-            fct = event.fct
+            destination = event.GetToPage()
+            fct = event.GetFctName()
+            args = event.GetFctArgs()
         except AttributeError:
             destination = "page_annot_actions"
             fct = ""
+            args = None
 
-        self.show_page(destination, fct)
+        self.show_page(destination, fct, args)
 
     # -----------------------------------------------------------------------
 
@@ -210,11 +211,12 @@ class sppasAnnotateBook(sppasSimplebook):
     # Public methods to navigate
     # -----------------------------------------------------------------------
 
-    def show_page(self, page_name, fct=""):
+    def show_page(self, page_name, fct="", args=None):
         """Show a page of the book.
 
         :param page_name: (str) one of 'page_annot_actions', 'page_...', ...
         :param fct: (str) a method of the page
+        :param args: (any) args of the function
 
         """
         # Find the page number to switch on
@@ -253,6 +255,9 @@ class sppasAnnotateBook(sppasSimplebook):
         # Call a method of the class
         if len(fct) > 0:
             try:
-                getattr(dest_w, fct)()
+                if args is not None:
+                    getattr(dest_w, fct)(args)
+                else:
+                    getattr(dest_w, fct)()
             except AttributeError as e:
                 wx.LogError("Annotate show page. {:s}".format(str(e)))

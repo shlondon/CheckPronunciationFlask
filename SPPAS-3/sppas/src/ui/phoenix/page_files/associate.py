@@ -44,7 +44,7 @@ import wx.dataview
 
 from sppas.src.config import sg
 from sppas.src.config import msg
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.utils import u
 from sppas.src.wkps import sppasWorkspace
 from sppas.src.wkps import States
@@ -60,9 +60,15 @@ from ..windows import BitmapTextButton, CheckButton
 from ..windows import sppasRadioBoxPanel
 from ..main_events import DataChangedEvent
 
+from .textedit import sppasTextEditDialog, EVT_CLOSE_EDIT
 from .filesutils import IdentifierTextValidator
 
 # ---------------------------------------------------------------------------
+
+FLS_ACT_EDIT = msg("Edit checked files with a text editor", "ui")
+FLS_ACT_MISS = msg("Remove missing files of the workspace", "ui")
+FLS_ACT_BROS = msg("Add all existing files to checked roots", "ui")
+
 
 MSG_HEADER_FILTER = u(msg("Checking files", "ui"))
 MSG_NB_CHECKED = \
@@ -102,6 +108,7 @@ class AssociatePanel(sppasPanel):
 
         # Construct the panel
         self._create_content()
+        self.Bind(EVT_CLOSE_EDIT, self._process_editor_closed)
 
         self.SetMinSize(wx.Size(sppasPanel.fix_size(28), -1))
         self.SetAutoLayout(True)
@@ -125,35 +132,52 @@ class AssociatePanel(sppasPanel):
 
     def _create_content(self):
         """Create the main content."""
+        edit = self.__create_button("files-edit", tooltip=FLS_ACT_EDIT)
+        missing = self.__create_button("files-missing", tooltip=FLS_ACT_MISS)
+        bros = self.__create_button("files-add-bros", tooltip=FLS_ACT_BROS)
         filtr = self.__create_button("check_filter")
         check = self.__create_button("checklist")
         link = self.__create_button("link_add")
         unlink = self.__create_button("link_del")
 
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.AddStretchSpacer(4)
+        sizer.AddStretchSpacer(2)
+
+        # Manage files only
+        sizer.Add(edit, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
+        sizer.Add(missing, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
+        sizer.Add(bros, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
+        sizer.AddStretchSpacer(1)
+
+        # Check files
         sizer.Add(filtr, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
         sizer.Add(check, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
         sizer.AddStretchSpacer(2)
+
+        # Check references
+        # sizer.Add(check, 1, wx.TOP | wx.ALIGN_CENTRE, 0)
+
+        # Link files and references
         sizer.Add(link, 1, wx.BOTTOM | wx.ALIGN_CENTRE, 0)
         sizer.Add(unlink, 1, wx.BOTTOM | wx.ALIGN_CENTRE, 0)
-        sizer.AddStretchSpacer(4)
 
+        sizer.AddStretchSpacer(2)
         self.SetSizer(sizer)
 
     # ------------------------------------------------------------------------
 
     # ------------------------------------------------------------------------
 
-    def __create_button(self, icon, label=None):
+    def __create_button(self, icon, label=None, tooltip=None):
         btn = BitmapTextButton(self, name=icon, label=label)
+        if tooltip is not None:
+            btn.SetToolTip(tooltip)
         btn.SetFocusStyle(wx.PENSTYLE_SOLID)
         btn.SetFocusWidth(3)
         btn.SetFocusColour(wx.Colour(128, 128, 196, 128))   # violet
         btn.SetLabelPosition(wx.BOTTOM)
         btn.SetSpacing(sppasPanel.fix_size(4))
-        btn.SetMinSize(wx.Size(sppasPanel.fix_size(24),
-                               sppasPanel.fix_size(24)))
+        btn.SetMinSize(wx.Size(sppasPanel.fix_size(24), sppasPanel.fix_size(24)))
         btn.Bind(wx.EVT_BUTTON, self._process_action)
         return btn
 
@@ -176,7 +200,16 @@ class AssociatePanel(sppasPanel):
         """Respond to an association event."""
         name = event.GetEventObject().GetName()
 
-        if name == "check_filter":
+        if name == "files-edit":
+            self.edit_checked_files()
+
+        elif name == "files-missing":
+            self.remove_missing_files()
+
+        elif name == "files-add-bros":
+            self.add_root_bros()
+
+        elif name == "check_filter":
             self.check_filter()
 
         elif name == "checklist":
@@ -187,6 +220,52 @@ class AssociatePanel(sppasPanel):
 
         elif name == "link_del":
             self.delete_links()
+
+    # ------------------------------------------------------------------------
+
+    def edit_checked_files(self):
+        """Open a dialog to edit checked files."""
+        if self.__data.is_empty():
+            wx.LogMessage('No files in data. Nothing to edit.')
+            return
+
+        checked_fn = self.__data.get_filename_from_state(States().CHECKED)
+        if len(checked_fn) == 0:
+            Information('None of the files are selected to be edited.')
+            return
+
+        checked_files = [fn.id for fn in checked_fn]
+        editor = sppasTextEditDialog(self, checked_files)
+        nb_loaded = 0
+        for fn, filename in zip(checked_fn, checked_files):
+            if editor.is_loaded(filename) is True:
+                nb_loaded += 1
+                fn.set_state(States().LOCKED)
+
+        if nb_loaded > 0:
+            self.notify()
+
+        editor.Show()
+
+    # ------------------------------------------------------------------------
+
+    def remove_missing_files(self):
+        missing_fn = self.__data.remove_files(States().MISSING)
+        if missing_fn > 0:
+            self.__data.update()
+            self.notify()
+
+    # ------------------------------------------------------------------------
+
+    def add_root_bros(self):
+        roots1 = self.__data.get_fileroot_from_state(States().CHECKED)
+        roots2 = self.__data.get_fileroot_from_state(States().AT_LEAST_ONE_CHECKED)
+
+        for fr in roots1+roots2:
+            if len(fr) > 0:
+                self.__data.add_file(fr[0].id, brothers=True)
+
+        self.notify()
 
     # ------------------------------------------------------------------------
     # GUI methods to perform actions on the data
@@ -300,6 +379,31 @@ class AssociatePanel(sppasPanel):
 
     # ------------------------------------------------------------------------
 
+    def _process_editor_closed(self, event):
+        """Process an event: the editor dialog was closed.
+
+        :param event: (wx.Event)
+
+        """
+        wx.LogMessage("Editor dialog closed.")
+        filenames = event.files
+        if isinstance(filenames, (list, tuple)) is False:
+            filenames = [filenames]
+
+        for filename in filenames:
+            wx.LogMessage(filename)
+            filebase = self.__data.get_object(filename)
+            cur_state = filebase.get_state()
+            if cur_state == States().LOCKED:
+                filebase.set_state(States().CHECKED)
+
+        self.notify()
+        textedit = event.GetEventObject()
+        if textedit:
+            textedit.Destroy()
+
+    # ------------------------------------------------------------------------
+
     def check_all(self):
         """Check all or any of the filenames and references."""
         # reverse the current state
@@ -337,12 +441,6 @@ class AssociatePanel(sppasPanel):
 
 class sppasFilesFilterDialog(sppasDialog):
     """Dialog to get filters to check files and references.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 

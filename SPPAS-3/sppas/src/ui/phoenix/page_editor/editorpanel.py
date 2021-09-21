@@ -1,38 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.page_editor.editorpanel.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Main panel of the editor page.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    ui.phoenix.page_editor.editor_panel.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
 
-    Main panel of the Editor page.
+    -------------------------------------------------------------------------
 
 """
 
@@ -50,6 +53,8 @@ from .listanns.tiersanns import sppasTiersEditWindow
 from .listanns import EVT_LISTANNS_VIEW
 from .timeline import sppasTimelinePanel
 from .timeline import EVT_TIMELINE_VIEW
+from .searchtag import sppasSearchTagDialog
+from .searchtag import EVT_SEARCH_VIEW
 
 # ---------------------------------------------------------------------------
 # List of displayed messages:
@@ -70,12 +75,6 @@ CLOSE_CONFIRM = _("The file contains not saved work that will be "
 class EditorPanel(sppasSplitterWindow):
     """Panel to display opened files and their content in a time-line style.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020 Brigitte Bigi
-
     """
 
     def __init__(self, parent, name="editor_panel"):
@@ -93,6 +92,8 @@ class EditorPanel(sppasSplitterWindow):
         self.Bind(EVT_TIMELINE_VIEW, self._process_timeline_action)
         # The event emitted by the sppasTiersEditWindow
         self.Bind(EVT_LISTANNS_VIEW, self._process_listanns_action)
+        # The event emitted by the sppasSearchDialog
+        self.Bind(EVT_SEARCH_VIEW, self._process_search_action)
 
         # Look&feel
         try:
@@ -104,6 +105,8 @@ class EditorPanel(sppasSplitterWindow):
 
         self.Layout()
 
+    # -----------------------------------------------------------------------
+    # Methods invoked by the parent because the buttons are in its toolbar
     # -----------------------------------------------------------------------
 
     def swap_panels(self):
@@ -127,6 +130,35 @@ class EditorPanel(sppasSplitterWindow):
     def swap_annlist_panels(self):
         """Swap the panels of the listview splitter."""
         self._listview.swap_panels()
+
+    # -----------------------------------------------------------------------
+
+    def open_search(self):
+        """Open or focus the search dialog."""
+        if self._searchdlg is None:
+            # Create the dialog
+            s = sppasSearchTagDialog(self)
+            # Add tiers
+            files = self._timeview.get_files()
+            for f in files:
+                if self._timeview.is_trs(f) is True:
+                    s.add_tiers(f, self._timeview.get_tier_list(f))
+            # Check the selected tier
+            filename = self._timeview.get_selected_filename()
+            tiername = self._timeview.get_selected_tiername()
+            ann_idx = self._timeview.get_selected_annotation()
+            s.set_selected_tiername(filename, tiername, ann_idx)
+            s.Show()
+        else:
+            self._searchdlg.SetFocus()
+            self._searchdlg.Raise()
+
+    # -----------------------------------------------------------------------
+
+    def search_for(self, forward=True):
+        """Open or focus the search dialog."""
+        if self._searchdlg is None:
+            return
 
     # -----------------------------------------------------------------------
     # Public methods to manage files and tiers
@@ -187,6 +219,8 @@ class EditorPanel(sppasSplitterWindow):
         if self._timeview.is_trs(name):
             tiers = self._timeview.get_tier_list(name)
             self._listview.remove_tiers(name, tiers)
+            if self._searchdlg is not None:
+                self._searchdlg.remove_tiers(name, tiers)
 
         self._timeview.remove_file(name, force)
         self._timeview.Layout()
@@ -203,8 +237,8 @@ class EditorPanel(sppasSplitterWindow):
         - Window 2 of the splitter: an annotation editor.
 
         """
-        w1 = sppasTiersEditWindow(self, orient=wx.HORIZONTAL, name="tiersanns_panel")
-        w2 = sppasTimelinePanel(self, name="timeline_panel")
+        w1 = sppasTiersEditWindow(self, orient=wx.HORIZONTAL, name="pnl_tiersanns")
+        w2 = sppasTimelinePanel(self, name="pnl_timeline")
 
         # Fix size&layout
         w, h = self.GetSize()
@@ -218,11 +252,19 @@ class EditorPanel(sppasSplitterWindow):
 
     @property
     def _listview(self):
-        return self.FindWindow("tiersanns_panel")
+        return self.FindWindow("pnl_tiersanns")
 
     @property
     def _timeview(self):
-        return self.FindWindow("timeline_panel")
+        return self.FindWindow("pnl_timeline")
+
+    @property
+    def _searchdlg(self):
+        for x in self.GetChildren():
+            if x.GetName() == "dlg_search":
+                return x
+        return None
+        #return self.FindWindow("dlg_search")
 
     # -----------------------------------------------------------------------
 
@@ -240,11 +282,15 @@ class EditorPanel(sppasSplitterWindow):
 
         if action == "tier_selected":
             # value of the event is the name of the tier
-            ann_index = self._timeview.get_selected_annotation()
-            self._listview.set_selected_tiername(filename, value, ann_index)
+            ann_idx = self._timeview.get_selected_annotation()
+            self._listview.set_selected_tiername(filename, value, ann_idx)
+            if self._searchdlg is not None:
+                self._searchdlg.set_selected_tiername(filename, value, ann_idx)
 
         elif action == "tiers_added":
             self._listview.add_tiers(filename, value)
+            if self._searchdlg is not None:
+                self._searchdlg.add_tiers(filename, value)
 
         elif action == "save":
             self.save_file(filename)
@@ -285,9 +331,30 @@ class EditorPanel(sppasSplitterWindow):
 
         # In all cases, update the selected annotation of the timeview
         tier_name = self._listview.get_selected_tiername()
-        self._timeview.set_selected_tiername(filename, tier_name)
-        idx = self._listview.get_selected_annotation()
-        self._timeview.set_selected_annotation(idx)
+        ann_idx = self._listview.get_selected_annotation()
+        self._timeview.set_selected_tiername(filename, tier_name, ann_idx)
+        # and update in the search dialog
+        if self._searchdlg is not None:
+            self._searchdlg.set_selected_tiername(filename, tier_name, ann_idx)
+
+    # -----------------------------------------------------------------------
+
+    def _process_search_action(self, event):
+        """Process an action event from the search dialog.
+
+        :param event: (wx.Event)
+
+        """
+        filename = event.filename
+        action = event.action
+
+        if action == "tier_selected":
+            if self._searchdlg is not None:
+                value = event.value
+                ann_idx = self._searchdlg.get_selected_annotation()
+                if ann_idx != -1:
+                    self._listview.set_selected_tiername(filename, value, ann_idx)
+                    self._timeview.set_selected_tiername(filename, value, ann_idx)
 
 # ----------------------------------------------------------------------------
 # Panel for tests

@@ -84,13 +84,12 @@ PROGRAM = os.path.abspath(__file__)
 SPPAS = os.path.dirname(os.path.dirname(os.path.dirname(PROGRAM)))
 sys.path.append(SPPAS)
 
-from sppas import paths
-from sppas import sg
-
+from sppas.src.config import paths
+from sppas.src.config import sg
+from sppas.src.config import sppasTypeError
 from sppas.src.wkps import sppasWkps
 from sppas.src.wkps import sppasCatReference, States, sppasRefAttribute
 from sppas.src.wkps.wkpexc import FileOSError
-from sppas.src.exceptions.exc import sppasTypeError
 
 # ---------------------------------------------------------------------------
 

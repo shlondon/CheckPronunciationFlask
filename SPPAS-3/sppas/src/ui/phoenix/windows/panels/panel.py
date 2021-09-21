@@ -167,6 +167,16 @@ class sppasPanel(wx.Panel):
             font = self.GetFont()
         return int(float(font.GetPixelSize()[1]))
 
+    # -----------------------------------------------------------------------
+
+    def get_font_width(self):
+        """Return the width of the in-use font."""
+        try:
+            font = wx.GetApp().settings.text_font
+        except AttributeError:
+            font = self.GetFont()
+        return int(float(font.GetPixelSize()[0]))
+
 # ---------------------------------------------------------------------------
 
 

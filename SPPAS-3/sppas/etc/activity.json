@@ -16,13 +16,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern (time-aligned tokens)"
+      "text": "Input file pattern with time-aligned tokens."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-activity",
-      "text": "Output file pattern"
+      "text": "Output file pattern with activities."
     },
     {
       "id": "duration",

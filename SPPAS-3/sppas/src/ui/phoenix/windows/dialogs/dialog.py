@@ -42,7 +42,6 @@
 import logging
 import wx
 
-from sppas.src.config import sg
 from sppas.src.config import msg
 from sppas.src.utils import u
 
@@ -98,6 +97,9 @@ class sppasDialog(wx.Dialog):
         """
         super(sppasDialog, self).__init__(*args, **kw)
         self._init_infos()
+        if "name" not in kw:
+            self.SetName('dlg_{:d}'.format(self.GetId()))
+
         self.SetAutoLayout(True)
 
         # To fade-in and fade-out the opacity
@@ -127,9 +129,6 @@ class sppasDialog(wx.Dialog):
         # Fix minimum frame size
         self.SetMinSize(wx.Size(sppasDialog.fix_size(320),
                                 sppasDialog.fix_size(200)))
-
-        # Fix frame name
-        self.SetName('{:s}-{:d}'.format(sg.__name__, self.GetId()))
 
         # icon
         _icon = wx.Icon()
@@ -501,13 +500,14 @@ class sppasDialog(wx.Dialog):
 
     def __alpha_cycle_in(self, *args):
         """Fade-in opacity of the dialog."""
+        if self.delta <= 0:
+            self.delta = -self.delta
+
         self.opacity_in += self.delta
         if self.opacity_in <= 0:
-            self.delta = -self.delta
             self.opacity_in = 0
 
         if self.opacity_in >= 255:
-            self.delta = -self.delta
             self.opacity_in = 255
             self.timer1.Stop()
 
@@ -517,19 +517,20 @@ class sppasDialog(wx.Dialog):
 
     def __alpha_cycle_out(self, *args):
         """Fade-out opacity of the dialog."""
-        self.opacity_out += self.delta
-        if self.opacity_out >= 255:
+        if self.delta >= 0:
             self.delta = -self.delta
+        if self.opacity_out >= 255:
             self.opacity_out = 255
 
-            self.timer2.Stop()
-
-        if self.opacity_out <= 0:
-            self.delta = -self.delta
+        self.opacity_out += self.delta
+        if self.opacity_out < 0:
             self.opacity_out = 0
-            wx.CallAfter(self.Destroy)
-
         self.SetTransparent(self.opacity_out)
+
+        if self.opacity_out == 0:
+            self.timer2.Stop()
+            self.DeletePendingEvents()
+            wx.CallAfter(self.Destroy)
 
     # -----------------------------------------------------------------------
 
@@ -556,4 +557,26 @@ class sppasDialog(wx.Dialog):
             font = self.GetFont()
         return int(float(font.GetPixelSize()[1]))
 
+
+# ----------------------------------------------------------------------------
+# Panels to test
+# ----------------------------------------------------------------------------
+
+
+class TestPanel(wx.Panel):
+
+    def __init__(self, parent):
+        super(TestPanel, self).__init__(
+            parent,
+            name="sppasDialog")
+
+        btn1 = wx.Button(self, label="Open dialog", pos=(10, 10), size=(128, 64))
+        self.Bind(wx.EVT_BUTTON, self._on_open_search, btn1)
+
+    # -----------------------------------------------------------------------
+
+    def _on_open_search(self, event):
+        d = sppasDialog(self, name="test_dialog")
+        wx.LogMessage("Dialog name (expected is test_dialog): {:s}".format(d.GetName()))
+        d.Show()
 

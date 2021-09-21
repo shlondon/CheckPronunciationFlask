@@ -1,39 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.install_window.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  A frame to install the dependencies (deps in features)
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Copyright (C) 2011-2021  Brigitte Bigi
-        Laboratoire Parole et Langage, Aix-en-Provence, France
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        Use of this software is governed by the GNU Public License, version 3.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        This banner notice must not be removed.
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-        ---------------------------------------------------------------------
+    This banner notice must not be removed.
 
-    ui.phoenix.install_window.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    -------------------------------------------------------------------------
 
 """
 
@@ -113,9 +115,6 @@ Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class sppasInstallWindow(sppasTopFrame):
     """Create the main frame of SPPAS.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     This class:
 
         - does not inherit of wx.TopLevelWindow because we need EVT_CLOSE
@@ -191,7 +190,7 @@ class sppasInstallWindow(sppasTopFrame):
         h = int(wx.GetApp().settings.frame_size[1] * 0.8)
         self.SetSize(wx.Size(w, h))
 
-        self.SetName('{:s}'.format(sg.__name__))
+        self.SetName("frm_install")
 
     # -----------------------------------------------------------------------
 
@@ -496,9 +495,6 @@ class sppasInstallWindow(sppasTopFrame):
 class sppasHeaderInstallPanel(sppasPanel):
     """Create a custom panel with an header title and subtitle.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     """
 
     def __init__(self, parent):
@@ -668,9 +664,6 @@ class sppasActionsInstallPanel(sppasPanel):
 class sppasHomeInstallPanel(sppasPanel):
     """Create a panel to display a welcome message when installing.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     """
 
     def __init__(self, parent):
@@ -804,9 +797,6 @@ class sppasLicenseInstallPanel(sppasPanel):
 class sppasFeaturesInstallPanel(sppasScrolledPanel):
     """Create a panel to select the features to enable.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     """
 
     def __init__(self, parent, name, installer=None, ft=None):
@@ -909,12 +899,6 @@ class sppasFeaturesInstallPanel(sppasScrolledPanel):
 class sppasFeaturesInstallDepsPanel(sppasFeaturesInstallPanel):
     """Create a panel to select the features of type deps to enable.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     """
 
     def __init__(self, parent, installer=None):
@@ -927,12 +911,6 @@ class sppasFeaturesInstallDepsPanel(sppasFeaturesInstallPanel):
 
 class sppasReadyInstallPanel(sppasPanel):
     """Create a panel to display a welcome message when installing.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     """
 
@@ -965,12 +943,6 @@ class sppasReadyInstallPanel(sppasPanel):
 
 class sppasTerminatedInstallPanel(sppasPanel):
     """Create a panel to display a welcome message when installing.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     """
 

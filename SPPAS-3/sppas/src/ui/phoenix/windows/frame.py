@@ -1,47 +1,52 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.windows.frame.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Override wx frame to apply SPPAS look.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.ui.phoenix.windows.frame.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
 import os
 import wx
 
-from sppas.src.config import sg
 from sppas.src.config import paths        # used in the TestPanel only
 from sppas.src.imgdata import sppasImage  # used in the TestPanel only
 
 from ..tools import sppasSwissKnife
+
 from .line import sppasStaticLine
 from .basedcwindow import sppasImageDCWindow
 
@@ -50,12 +55,6 @@ from .basedcwindow import sppasImageDCWindow
 
 class sppasFrame(wx.Frame):
     """Base class for frames in SPPAS.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 
@@ -72,6 +71,9 @@ class sppasFrame(wx.Frame):
         """
         super(sppasFrame, self).__init__(*args, **kw)
         self._init_infos()
+        if "name" not in kw:
+            self.SetName('frm_{:d}'.format(self.GetId()))
+
         self.SetAutoLayout(True)
 
         # To fade-in and fade-out the opacity
@@ -94,9 +96,6 @@ class sppasFrame(wx.Frame):
         """
         # Fix minimum frame size
         self.SetMinSize(wx.Size(320, 200))
-
-        # Fix frame name
-        self.SetName('{:s}-{:d}'.format(sg.__name__, self.GetId()))
 
         # icon
         _icon = wx.Icon()
@@ -235,12 +234,6 @@ class sppasFrame(wx.Frame):
 class sppasTopFrame(wx.TopLevelWindow):
     """Base class for frames in SPPAS.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     """
 
     def __init__(self, *args, **kw):
@@ -257,6 +250,8 @@ class sppasTopFrame(wx.TopLevelWindow):
         """
         super(sppasTopFrame, self).__init__(*args, **kw)
         self._init_infos()
+        if "name" not in kw:
+            self.SetName('frm_{:d}'.format(self.GetId()))
 
         # To fade-in and fade-out the opacity
         self.opacity_in = 0
@@ -279,9 +274,6 @@ class sppasTopFrame(wx.TopLevelWindow):
         """
         # Fix minimum frame size
         self.SetMinSize(wx.Size(320, 200))
-
-        # Fix frame name
-        self.SetName('{:s}-{:d}'.format(sg.__name__, self.GetId()))
 
         # icon
         _icon = wx.Icon()
@@ -491,6 +483,7 @@ class sppasTopFrame(wx.TopLevelWindow):
         except AttributeError:
             obj_size = int(value)
         return obj_size
+
     # -----------------------------------------------------------------------
     # GUI
     # -----------------------------------------------------------------------
@@ -523,12 +516,6 @@ class sppasTopFrame(wx.TopLevelWindow):
 class sppasImageFrame(wx.TopLevelWindow):
     """A frame with only an image as background.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     """
 
     def __init__(self, *args, **kw):
@@ -551,6 +538,9 @@ class sppasImageFrame(wx.TopLevelWindow):
 
         super(sppasImageFrame, self).__init__(*args, **kw)
         self._init_infos()
+        if "name" not in kw:
+            self.SetName('frm_{:d}'.format(self.GetId()))
+
         self._create_content()
         self.SetBackgroundImage(img_name)
 
@@ -568,9 +558,6 @@ class sppasImageFrame(wx.TopLevelWindow):
         """
         # Fix minimum frame size
         self.SetMinSize(wx.Size(320, 200))
-
-        # Fix frame name
-        self.SetName('{:s}-{:d}'.format(sg.__name__, self.GetId()))
 
         # icon
         _icon = wx.Icon()

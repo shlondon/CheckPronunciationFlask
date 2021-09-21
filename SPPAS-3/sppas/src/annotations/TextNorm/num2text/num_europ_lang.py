@@ -30,7 +30,7 @@
         ---------------------------------------------------------------------
 """
 
-from sppas.src.exceptions import sppasValueError
+from sppas.src.config import sppasValueError
 
 from .num_base import sppasNumBase
 

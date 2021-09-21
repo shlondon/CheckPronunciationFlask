@@ -57,8 +57,8 @@ is instantiated, but no error is raised at the time of init/import.
 """
 
 from sppas.src.config import cfg
-from sppas.src.exceptions import sppasEnableFeatureError
-from sppas.src.exceptions import sppasPackageFeatureError
+from sppas.src.config import sppasEnableFeatureError
+from sppas.src.config import sppasPackageFeatureError
 
 from .pstate import PlayerState
 from .pstate import PlayerType

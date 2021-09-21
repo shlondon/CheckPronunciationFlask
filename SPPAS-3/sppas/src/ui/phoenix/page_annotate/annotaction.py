@@ -2,7 +2,7 @@
 :filename: sppas.src.ui.phoenix.page_annotate.annotaction.py
 :author:   Brigitte Bigi
 :contact:  develop@sppas.org
-:summary:  Main panel of the page to annotateof the GUI
+:summary:  Main panel of the page to annotate of the GUI
 
 .. _This file is part of SPPAS: http://www.sppas.org/
 ..
@@ -45,6 +45,7 @@ import os
 from sppas.src.config import msg
 from sppas.src.config import annots, paths
 from sppas.src.utils import u
+from sppas.src.annotations import SppasFiles
 
 from ..windows.dialogs import Error
 from ..windows import sppasStaticLine
@@ -52,10 +53,10 @@ from ..windows import sppasToolbar
 from ..windows import sppasPanel
 from ..windows import sppasScrolledPanel
 from ..windows import sppasStaticText
-from ..windows import BitmapTextButton, RadioButton
+from ..windows import BitmapTextButton, RadioButton, CheckButton
 from ..windows import sppasComboBox  # todo: implement FindString() and Delete()
 
-from .annotevent import PageChangeEvent
+from .annotevent import sppasAnnotBookPageChangeEvent
 from .annotselect import LANG_NONE
 
 # ---------------------------------------------------------------------------
@@ -83,8 +84,9 @@ MSG_BTN_DEL_ALL = _("Del all")
 class sppasActionAnnotatePanel(sppasPanel):
     """Create a panel to configure then run automatic annotations.
 
-    1st page of the "page_annotate". Displays the steps to perform
-    automatic annotations and the list of reports.
+    It's the 1st page of the book "page_annotate" to display both:
+        - all the steps to perform automatic annotations, and
+        - the list of reports.
 
     """
 
@@ -208,11 +210,11 @@ class sppasActionAnnotatePanel(sppasPanel):
         st = sppasStaticText(p, label=MSG_STEP_FORMAT)
         s.Add(st, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.ALL, border)
 
-        for out_format in annots.outformat:
-            all_formats = self.__param.get_outformat_extensions(out_format)
+        for out_format in SppasFiles.OUT_FORMATS:
+            all_formats = SppasFiles.get_outformat_extensions(out_format)
             if len(all_formats) == 0:
                 continue
-            default = self.__param.get_default_outformat_extension(out_format)
+            default = SppasFiles.get_default_extension(out_format)
             box = sppasComboBox(p, -1, choices=all_formats, name="format_choice_"+out_format)
             box.SetSelection(box.GetItems().index(default))
             box.SetMinSize(wx.Size(sppasPanel.fix_size(80), -1))
@@ -274,22 +276,36 @@ class sppasActionAnnotatePanel(sppasPanel):
 
     def __create_action_annot(self, parent):
         """The button to run annotations (step 4)."""
+        border = sppasPanel.fix_size(10)
         p = sppasPanel(parent, style=wx.BORDER_NONE, name="annot_panel")
         st = sppasStaticText(p, label=MSG_STEP_RUN)
-        btn_run = self.__create_select_annot_btn(p, MSG_BTN_RUN)
+
+        po = sppasPanel(p, style=wx.BORDER_NONE)
+        so = wx.BoxSizer(wx.VERTICAL)
+        btn_run = self.__create_select_annot_btn(po, MSG_BTN_RUN)
         btn_run.SetName("run_btn")
         btn_run.SetImage("wizard")
+        btn_merge = CheckButton(po, label="Create -merge files", name="btn_option_merge")
+        btn_merge.SetBorderWidth(0)
+        btn_merge.SetSpacing(12)
+        btn_merge.SetFocusWidth(0)
+        btn_merge.SetMinSize(wx.Size(sppasPanel.fix_size(196), sppasPanel.fix_size(24)))
+        so.Add(btn_merge, 0, wx.ALL, border=0)
+        so.Add(btn_run, 0, wx.ALL, border=0)
+        po.SetSizer(so)
 
         s = wx.BoxSizer(wx.HORIZONTAL)
-        border = sppasPanel.fix_size(10)
         s.Add(st, 1, wx.ALIGN_CENTER_VERTICAL | wx.ALIGN_LEFT | wx.ALL, border)
-        s.Add(btn_run, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, border)
+        s.Add(po, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, border)
         p.SetSizer(s)
         return p
 
     @property
     def btn_run(self):
         return self.FindWindow("run_btn")
+
+    def get_option_merge(self):
+        return self.FindWindow("btn_option_merge").IsChecked()
 
     # ------------------------------------------------------------------------
 
@@ -331,12 +347,15 @@ class sppasActionAnnotatePanel(sppasPanel):
     # Events management
     # -----------------------------------------------------------------------
 
-    def notify(self, destination, fct_name=""):
-        """Send the EVT_PAGE_CHANGE to the parent."""
+    def notify(self, destination, fct_name="", fct_args=None):
+        """Send the EVT_ANNOT_PAGE_CHANGE to the event handler."""
         if self.GetParent() is not None:
-            evt = PageChangeEvent(from_page=self.GetName(), to_page=destination, fct=fct_name)
+            evt = sppasAnnotBookPageChangeEvent(self.GetId())
             evt.SetEventObject(self)
-            wx.PostEvent(self.GetParent(), evt)
+            evt.SetToPage(destination)
+            evt.SetFctName(fct_name)
+            evt.SetFctArgs(fct_args)
+            self.GetEventHandler().ProcessEvent(evt)
 
     # -----------------------------------------------------------------------
 
@@ -355,7 +374,7 @@ class sppasActionAnnotatePanel(sppasPanel):
         self.FindWindow("lang_choice").Bind(wx.EVT_COMBOBOX, self._on_lang_changed)
 
         # Output format changed
-        for out_format in annots.outformat:
+        for out_format in SppasFiles.OUT_FORMATS:
             box = self.FindWindow("format_choice_"+out_format)
             if box is not None:
                 box.Bind(wx.EVT_COMBOBOX, self._on_format_changed)
@@ -373,7 +392,8 @@ class sppasActionAnnotatePanel(sppasPanel):
 
         for ann_type in annots.types:
             if event_name == "btn_annot_" + ann_type:
-                self.notify("page_annot_{:s}".format(ann_type))
+                logging.info("CALL NOTIFY with destination = page_annot_{:s}".format(ann_type))
+                self.notify(destination="page_annot_{:s}".format(ann_type))
                 event.Skip()
                 return
 
@@ -386,7 +406,7 @@ class sppasActionAnnotatePanel(sppasPanel):
             self._reports.delete_unchecked()
 
         elif event_name == "run_btn":
-            self.notify("page_annot_log", fct_name="run")
+            self.notify("page_annot_log", fct_name="run", fct_args=self.get_option_merge())
 
         elif event_name == "report_btn":
             # Get the name of the checked report

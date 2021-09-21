@@ -39,12 +39,13 @@
 """
 
 from sppas.src.config import error
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.anndata import sppasTier
 from sppas.src.anndata import sppasLocation
 from sppas.src.anndata import sppasInterval
 from sppas.src.anndata import sppasLabel
 from sppas.src.anndata import sppasTag
+
 from ..annotationsexc import EmptyInputError
 
 # ---------------------------------------------------------------------------

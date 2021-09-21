@@ -41,7 +41,8 @@
     By using SPPAS, you agree to cite a reference in your publications.
     Any publication arising from the use of this software, including but
     not limited to academic journal and conference publications, technical
-    reports and manuals, must cite at least one of the following works:
+    reports and manuals, must cite at least one of the two following works
+    or any of the references listed in the documentation:
 
         Brigitte Bigi, Christine Meunier (2018),
         Automatic segmentation of spontaneous speech,
@@ -53,7 +54,6 @@
         the Phonetician - International Society of Phonetic Sciences,
         ISSN 0741-6164, Number 111-112 / 2015-I-II, pages 54-69.
 
-        or any references listed in the documentation.
 
     -------------------------------------------------------------------------
 
@@ -65,5 +65,6 @@
     -------------------------------------------------------------------------
 
     Any and all constructive comments are welcome: `contact@sppas.org`
+    To declare an issue or to propose a plugin: `develop@sppas.org`
 
     -------------------------------------------------------------------------

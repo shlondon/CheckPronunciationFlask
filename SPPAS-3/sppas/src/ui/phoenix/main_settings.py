@@ -99,8 +99,7 @@ class WxAppSettings(sppasBaseSettings):
                           separators=(',', ': '))
             logging.info("Settings saved successfully in file {:s}".format(filename))
         except Exception as e:
-            logging.error("Settings not saved: {:s}."
-                          "".format(str(e)))
+            logging.error("Settings not saved: {:s}.".format(str(e)))
 
     # -----------------------------------------------------------------------
 
@@ -136,7 +135,7 @@ class WxAppSettings(sppasBaseSettings):
 
             # Value to apply to the opacity when starting/closing the windows
             fade_in_delta=-5,
-            fae_out_delta=-10
+            fae_out_delta=-5
 
         )
 

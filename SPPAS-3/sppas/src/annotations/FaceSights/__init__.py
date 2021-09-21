@@ -42,7 +42,7 @@ This package requires 'video' feature, for opencv and numpy dependencies.
 """
 
 from sppas.src.config import cfg
-from sppas.src.exceptions import sppasEnableFeatureError
+from sppas.src.config import sppasEnableFeatureError
 
 
 if cfg.feature_installed("video") is True:

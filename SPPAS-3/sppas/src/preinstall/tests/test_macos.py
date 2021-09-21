@@ -35,7 +35,7 @@
 
 import unittest
 
-from sppas.src.exceptions.exc import sppasInstallationError
+from sppas.src.config import sppasInstallationError
 from sppas.src.preinstall.installer import MacOsInstaller
 
 # ---------------------------------------------------------------------------

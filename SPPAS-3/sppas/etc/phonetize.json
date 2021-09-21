@@ -23,13 +23,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-token",
-      "text": "Input file pattern (tokenization)"
+      "text": "Input pattern of the file with a normalized text."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-phon",
-      "text": "Output file pattern"
+      "text": "Output pattern of the file with the phonetized text."
     },
     {
       "id": "phonunk",
@@ -41,7 +41,7 @@
       "id": "usestdtokens",
       "type": "bool",
       "value": false,
-      "text": "Phonetize from standard tokens instead of faked tokens"
+      "text": "Phonetize from the standard tokens instead of the faked ones"
     }
 
   ],

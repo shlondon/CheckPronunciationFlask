@@ -45,9 +45,9 @@ import collections
 import numpy
 import cv2
 
-from sppas.src.exceptions import sppasTypeError
-from sppas.src.exceptions import sppasKeyError
-from sppas.src.exceptions import IntervalRangeException
+from sppas.src.config import sppasTypeError
+from sppas.src.config import sppasKeyError
+from sppas.src.config import IntervalRangeException
 from sppas.src.config import sppasTrash
 
 from .coordinates import sppasCoords

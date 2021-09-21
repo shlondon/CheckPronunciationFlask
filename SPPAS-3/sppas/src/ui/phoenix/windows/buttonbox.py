@@ -87,8 +87,15 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
         else:
             c = self.GetSizer().GetCols()
             r = self.GetSizer().GetRows()
-            min_width = self.get_font_height() * sppasPanel.fix_size(2 * c)
-            expected_height = (r * int(float(self.get_font_height() * 1.8))) + (r * self.GetSizer().GetHGap())
+            min_width = self.get_font_height()
+            for b in self._buttons:
+                mw, mh = b.GetMinSize()
+                if mw > min_width:
+                    min_width = mw
+
+            min_width = (min_width * c) + ((sppasPanel.fix_size(2) + self.GetSizer().GetVGap()) * (c+1))
+            expected_height = (r * int(float(self.get_font_height() * 1.8))) + \
+                              (r * (sppasPanel.fix_size(2) + self.GetSizer().GetHGap()))
             if c == 1:
                 min_height = min(expected_height,
                                  sppasPanel.fix_size(100))  # SHOULD BE DYNAMICALLY ESTIMATED
@@ -249,7 +256,7 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
             return False
         if n > len(self._buttons):
             return False
-        return self._buttons[n].IsEnabled(n)
+        return self._buttons[n].IsEnabled()
 
     # ------------------------------------------------------------------------
 
@@ -342,6 +349,8 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
         showed.append(True)
 
         rows, cols = self.get_rows_cols_counts(choices)
+        logging.debug(" append. choices {} . nb estimated rows = {}".format(choices, rows))
+
         self._append_choices_to_sizer(choices, rows, cols)
 
         for i, btn in enumerate(self._buttons):
@@ -410,8 +419,13 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
                     cols = self._major_dimension
                     rows = (len(choices)+1) // self._major_dimension
                 elif self._style == wx.RA_SPECIFY_ROWS:
+                    logging.debug("NB rows fixed to {:d}; choices={}".format(self._major_dimension, choices))
                     rows = self._major_dimension
-                    cols = (len(choices)+1) // self._major_dimension
+                    cols = len(choices) // self._major_dimension
+                    if len(choices) % self._major_dimension > 0:
+                        cols += 1
+                    logging.debug("nb cols = {}".format(cols))
+
             else:  # one dimension
                 if self._style == wx.RA_SPECIFY_COLS:
                     cols = 1
@@ -429,15 +443,10 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
         """Create the main content."""
         rows, cols = self.get_rows_cols_counts(choices)
         grid = wx.GridBagSizer(vgap=vgap, hgap=hgap)
+        grid.SetFlexibleDirection(wx.BOTH)
         self.SetSizer(grid)
 
         self._append_choices_to_sizer(choices, rows, cols)
-
-        for c in range(cols):
-            grid.AddGrowableCol(c)
-        for r in range(rows):
-            grid.AddGrowableRow(r)
-
         if len(choices) > 0:
             try:
                 self.SetSelection(0)
@@ -448,6 +457,7 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
 
     def _append_choices_to_sizer(self, choices, rows, cols):
         grid = self.GetSizer()
+
         if self._style == wx.RA_SPECIFY_COLS:
             for c in range(cols):
                 for r in range(rows):
@@ -455,7 +465,7 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
                     if index < len(choices):
                         btn = self._create_button(label=choices[index],
                                                   name="button_%d_%d" % (c, r))
-                        grid.Add(btn, pos=(r, c), flag=wx.EXPAND)
+                        grid.Add(btn, pos=(r, c), flag=wx.EXPAND | wx.LEFT | wx.TOP, border=sppasPanel.fix_size(2))
                         self._buttons.append(btn)
 
         else:
@@ -465,8 +475,15 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
                     if index < len(choices):
                         btn = self._create_button(label=choices[index],
                                                   name="button_%d_%d" % (r, c))
-                        grid.Add(btn, pos=(r, c), flag=wx.EXPAND)
+                        grid.Add(btn, pos=(r, c), flag=wx.EXPAND | wx.LEFT | wx.TOP, border=sppasPanel.fix_size(2))
                         self._buttons.append(btn)
+
+        for c in range(cols):
+            if grid.IsColGrowable(c) is False:
+                grid.AddGrowableCol(c)
+        for r in range(rows):
+            if grid.IsRowGrowable(r):
+                grid.AddGrowableRow(r)
 
     # -----------------------------------------------------------------------
 
@@ -475,7 +492,11 @@ class sppasRadioBoxPanel(sppasScrolledPanel):
         btn = RadioButton(self, label=label, name=name)
         btn.Enable(True)
         btn.SetValue(False)
-        btn.SetMinSize(wx.Size(-1, self.get_font_height() * 2))
+        # estimate min size:
+        w = self.get_font_width()
+        mw = w * len(label)
+        btn.SetMinSize(wx.Size(mw, int(float(self.get_font_height()) * 1.8)))
+        #btn.SetSize(wx.Size(mw, int(float(self.get_font_height()) * 1.8)))
         return btn
 
     # ------------------------------------------------------------------------
@@ -576,10 +597,18 @@ class sppasCheckBoxPanel(sppasRadioBoxPanel):
 
         btn.Enable(True)
         btn.SetValue(False)
+
         btn.SetMinSize(wx.Size(-1, int(float(self.get_font_height()) * 1.8)))
+        #btn.SetSize(wx.Size(-1, int(float(self.get_font_height()) * 1.8)))
         btn.Bind(sb.EVT_BUTTON_PRESSED, self._process_btn_event)
+        btn.Bind(wx.EVT_CHECKBOX, self._process_checked_event)
 
         return btn
+    # ------------------------------------------------------------------------
+
+    def _process_checked_event(self, event):
+        # Capture the event in order to not propagate it.
+        pass
 
     # ------------------------------------------------------------------------
 
@@ -595,19 +624,17 @@ class sppasCheckBoxPanel(sppasRadioBoxPanel):
             return False
         if n > len(self._buttons):
             return False
-        # if it's one of the checked buttons
-        if self._buttons[n].GetValue() is True:
-            self._activate(n, False)
 
         self._buttons[n].Enable(enable)
         return True
 
     # ------------------------------------------------------------------------
 
-    def SetSelection(self, n):
+    def SetSelection(self, n, value=True):
         """Set the given item selected.
 
         :param n: (int) – Index of the item to select
+        :param value: (bool) – Select or un-select the given item
 
         """
         if n > len(self._buttons):
@@ -617,15 +644,27 @@ class sppasCheckBoxPanel(sppasRadioBoxPanel):
             btn = self._buttons[n]
             # do not select a disabled button
             if btn.IsEnabled() is True:
-                # select the expected item and add to selection
-                self._activate(n, True)
+                # select the expected item and add to selection or the contrary
+                self._activate(n, value)
+
+    # ------------------------------------------------------------------------
+
+    def GetSelection(self):
+        """Return the list of indexes of the selected items.
+
+        :returns: (list of int)
+
+        """
+        if len(self._selection) > 0:
+            return tuple(self._selection)
+        return list()
 
     # ------------------------------------------------------------------------
 
     def GetStringSelection(self):
         """Return the list of labels of the selected items.
 
-        :returns: (str) The label of the selected items
+        :returns: (list of str) The labels of the selected items
 
         """
         if len(self._selection) > 0:
@@ -740,10 +779,10 @@ class sppasCheckBoxPanel(sppasRadioBoxPanel):
         btn = self._buttons[n]
         if btn.IsEnabled() is True:
             btn.SetValue(value)
-        if value is True and n not in self._selection:
-            self._selection.append(n)
-        if value is False and n in self._selection:
-            self._selection.remove(n)
+            if value is True and n not in self._selection:
+                self._selection.append(n)
+            if value is False and n in self._selection:
+                self._selection.remove(n)
 
 # ----------------------------------------------------------------------------
 
@@ -783,7 +822,12 @@ class sppasToggleBoxPanel(sppasRadioBoxPanel):
 
         btn.Enable(True)
         btn.SetValue(False)
-        btn.SetMinSize(wx.Size(-1, int(float(self.get_font_height()) * 1.8)))
+
+        # estimate min size:
+        mw = h * (len(label) + 2)
+        btn.SetMinSize(wx.Size(mw, int(float(self.get_font_height()) * 1.8)))
+        btn.SetSize(wx.Size(mw, int(float(self.get_font_height()) * 1.8)))
+
         return btn
 
     # ------------------------------------------------------------------------
@@ -822,6 +866,10 @@ class TestPanelRadioBox(wx.Panel):
         rbc.Bind(wx.EVT_RADIOBOX, self.on_btn_event)
         # disable apples:
         rbc.EnableItem(3, False)
+        rbc.SetBackgroundColour(wx.RED)
+        rbc.SetSelection(1)
+        rbc.EnableItem(1, False)
+        rbc.EnableItem(1, True)
         # should do return False:
         # assert(rbc.EnableItem(50, True) is False), "Enable Item with index 50:"
 
@@ -829,26 +877,18 @@ class TestPanelRadioBox(wx.Panel):
             self,
             pos=(220, 10),
             size=wx.Size(300, 200),
-            choices=["bananas", "pears", "tomatoes", "apples", "pineapples"],
+            choices=["fruits de la passion", "jujube", "bananes", "pommes", "ananas"],
             majorDimension=2,
             style=wx.RA_SPECIFY_ROWS,
             name="radio_in_rows")
         rbr.Bind(wx.EVT_RADIOBOX, self.on_btn_event)
-        # disable apples
+        # disable pommes
         rbr.EnableItem(3, False)
-
-        tbr = sppasToggleBoxPanel(
-            self, pos=(10, 350), size=wx.Size(400, 100),
-            choices=["choice 1", "choice 2", "choice 3", "choice 4", "choice 5", "choice 6", "choice 7"],
-            majorDimension=3,
-            style=wx.RA_SPECIFY_ROWS,
-            name="toogle_in_rows"
-        )
-        tbr.Bind(wx.EVT_RADIOBOX, self.on_btn_event)
+        rbc.SetBackgroundColour(wx.BLUE)
 
         tbc = sppasToggleBoxPanel(
-            self, pos=(550, 10), size=wx.Size(110, 200),
-            choices=["choice 1", "choice 2", "choice 3", "choice 3--", "choice 4", "choice 5", "choice 6"],
+            self, pos=(550, 10), size=wx.Size(200, 200),
+            choices=["choix 1", "choix 2", "choix 3", "choix 3--", "choix 4", "choix 5", "choix 6"],
             majorDimension=1,
             style=wx.RA_SPECIFY_COLS,
             name="toogle_in_cols"
@@ -862,23 +902,58 @@ class TestPanelRadioBox(wx.Panel):
         tbc.SetItemLabel(1, "changed 2")
         tbc.Refresh()
         tbc.Bind(wx.EVT_RADIOBOX, self.on_btn_event)
+        rbc.SetBackgroundColour(wx.LIGHT_GREY)
 
         cbc = sppasCheckBoxPanel(
-            self, pos=(500, 200), size=wx.Size(110, 200),
-            choices=["choice 1", "choice 2", "choice 3", "choice 4", "choice 5"],
-            majorDimension=1,
+            self, pos=(500, 250), size=wx.Size(200, 200),
+            choices=["check 1", "check 2"],
+            majorDimension=2,
             style=wx.RA_SPECIFY_COLS,
             name="check_in_cols"
         )
-        cbc.SetVGap(0)
-        cbc.SetHGap(0)
-        cbc.Append("Appended")
-        cbc.Bind(wx.EVT_CHECKBOX, self.on_btn_event)
+        cbc.SetVGap(2)
+        cbc.SetHGap(2)
+        cbc.Append("Appended 1")
+        cbc.Append("Appended 2")
+        cbc.Append("Appended 3")
+        cbc.Append("Appended 4")
+        cbc.Append("Appended 5")
+        cbc.SetBackgroundColour(wx.YELLOW)
+        cbc.SetSelection(0)
+        cbc.EnableItem(0, False)
+        cbc.SetSelection(1)
+        cbc.EnableItem(1, False)
+        cbc.EnableItem(1, True)
+        cbc.EnableItem(2, False)
+        #cbc.Layout()
+        cbc.Refresh()
+        cbc.Bind(wx.EVT_CHECKBOX, self.on_btn_check_event)
+
+        tbr = sppasToggleBoxPanel(
+            self, pos=(10, 400), size=wx.Size(400, 100),
+            choices=["choice 1", "choice 2", "choice 3", "choice 4", "choice 5"],
+            majorDimension=3,
+            style=wx.RA_SPECIFY_ROWS,
+            name="toogle_in_rows"
+        )
+        tbr.SetBackgroundColour(wx.YELLOW)
+        tbr.Append("ajout 1")
+        tbr.Append("ééééé 2")
+        tbr.EnableItem(2, False)
+        #tbr.Layout()
+        tbr.Refresh()
+        tbr.Bind(wx.EVT_RADIOBOX, self.on_btn_event)
 
     # -----------------------------------------------------------------------
 
     def on_btn_event(self, event):
         obj = event.GetEventObject()
-        logging.debug('* * * Box Event by {:s} * * *'.format(obj.GetName()))
-        logging.debug(" --> selection index {}".format(obj.GetSelection()))
-        logging.debug(" --> selection {}".format(obj.GetStringSelection()))
+        logging.debug('* * * RadioBox Event by {:s} * * *'.format(obj.GetName()))
+        logging.debug(" --> selection index: {:d}".format(obj.GetSelection()))
+        logging.debug(" --> selection label: {:s}".format(obj.GetStringSelection()))
+
+    def on_btn_check_event(self, event):
+        obj = event.GetEventObject()
+        logging.debug('* * * CheckBox Event by {:s} * * *'.format(obj.GetName()))
+        logging.debug(" --> selection indexes: {}".format(obj.GetSelection()))
+        logging.debug(" --> selection labels: {}".format(obj.GetStringSelection()))

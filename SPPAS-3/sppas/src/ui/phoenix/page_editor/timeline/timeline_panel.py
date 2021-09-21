@@ -1,36 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.page_editor.timeline.timeline_panel.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Main panel of the timeline view of files
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    ui.phoenix.page_editor.timeline.timeline_panel.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -74,12 +79,6 @@ CLOSE_CONFIRM = _("The file contains not saved work that will be "
 
 class sppasTimelinePanel(sppasPanel):
     """Panel to display opened files and their content in a time-line style.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020 Brigitte Bigi
 
     The event emitted by this view is TimelineViewEvent with:
 
@@ -230,7 +229,7 @@ class sppasTimelinePanel(sppasPanel):
                 panel.show_tier_infos(not self.smmpc.is_tiers_annotations())
                 self.smmpc.add_unsupported(name, panel.get_duration())
                 # If no visible part was defined, do it now! or update it.
-                self._update_visible_range()
+                self.update_visible_range()
                 s, e = self.smmpc.get_visible_range()
                 panel.set_visible_period(s, e)
                 self.notify(action="tiers_added", filename=name, value=panel.get_tier_list())
@@ -346,14 +345,24 @@ class sppasTimelinePanel(sppasPanel):
 
     # -----------------------------------------------------------------------
 
-    def set_selected_tiername(self, filename, tier_name):
-        """Change selected tier.
+    def set_selected_tiername(self, filename, tier_name, ann_idx):
+        """Change selected tier and scroll to the selected ann to center it.
 
         :param filename: (str) Name of a file
         :param tier_name: (str) Name of a tier
+        :param ann_idx: (int) Index of the selected annotation in the tier
         :return: (bool)
 
         """
+        updated = self.__set_selecton(filename, tier_name, ann_idx)
+        if updated is True:
+            self.update_visible_range()
+
+    # -----------------------------------------------------------------------
+
+    def __set_selecton(self, filename, tier_name, ann_idx):
+        """Change selected tier."""
+        updated = False
         for fn in self._files:
             panel = self._files[fn]
             if panel.is_trs() is True:
@@ -361,8 +370,14 @@ class sppasTimelinePanel(sppasPanel):
                     wx.LogDebug("New tier selected: {}".format(tier_name))
                     self._sel_file = fn
                     panel.set_selected_tiername(tier_name)
+                    panel.set_selected_ann(ann_idx)
+                    # Update the SMMPC: set the selection to the timeslider
+                    s, e = panel.get_selected_localization()
+                    self.smmpc.set_selection_range(s, e)
+                    updated = True
                 else:
                     panel.set_selected_tiername(None)
+        return updated
 
     # -----------------------------------------------------------------------
 
@@ -376,24 +391,6 @@ class sppasTimelinePanel(sppasPanel):
             panel = self._files[self._sel_file]
             return panel.get_selected_ann()
         return -1
-
-    # -----------------------------------------------------------------------
-
-    def set_selected_annotation(self, idx):
-        """Set the index of the selected annotation.
-
-        :param idx: Index or -1 to cancel the selection.
-
-        """
-        if self._sel_file is not None:
-            panel = self._files[self._sel_file]
-            panel.set_selected_ann(idx)
-            # Update the SMMPC: set the selection to the timeslider
-            s, e = panel.get_selected_localization()
-            self.smmpc.set_selection_range(s, e)
-        else:
-            wx.LogWarning("Can't select the annotation at index {}. "
-                          "No tier was previously selected.".format(idx))
 
     # -----------------------------------------------------------------------
 
@@ -565,8 +562,8 @@ class sppasTimelinePanel(sppasPanel):
         if action == "tier_selected":
             # a new tier was selected, or a new annotation in this tier
             ann_idx = panel.get_selected_ann()
-            self.set_selected_tiername(filename, value)
-            self.set_selected_annotation(ann_idx)
+            self.__set_selecton(filename, value, ann_idx)
+
         elif action == "size":
             self.Layout()
 
@@ -655,7 +652,7 @@ class sppasTimelinePanel(sppasPanel):
         self._collapse_changed(panel)
 
         # If no visible part was defined, do it now! or update it.
-        self._update_visible_range()
+        self.update_visible_range()
 
         s, e = self.smmpc.get_visible_range()
         if self.smmpc.is_audio(filename):
@@ -691,7 +688,7 @@ class sppasTimelinePanel(sppasPanel):
 
     # ----------------------------------------------------------------------
 
-    def _update_visible_range(self, s=None, e=None):
+    def update_visible_range(self, s=None, e=None):
         """Update the visible range to be sure that s or e is inside."""
         # no visible range was defined before
         duration = self.smmpc.get_duration()
@@ -728,14 +725,27 @@ class sppasTimelinePanel(sppasPanel):
                 panel.set_visible_period(vs, ve)
 
         else:
-            # a visible range was defined before. check if s or e inside.
-            outside = True
-            if s is not None and cs < s < ce:
-                outside = False
-            if e is not None and cs < e < ce:
-                outside = False
-            if outside is True:
-                pass
+            # a visible range was defined before.
+            if s is None and e is None:
+                # visible range is centering the currently selected annotation
+                wx.LogDebug("***** scroll to selection *****")
+                self.smmpc.scroll_to_selection()
+                vs, ve = self.smmpc.get_visible_range()
+                for filename in self._files:
+                    panel = self._files[filename]
+                    panel.set_visible_period(vs, ve)
+
+            else:
+                # check if s or e inside.
+                outside = True
+                if s is not None and cs < s < ce:
+                    outside = False
+                if e is not None and cs < e < ce:
+                    outside = False
+                # if the given s and e are outside
+                if outside is True:
+                    # TODO TODO
+                    pass
 
     # -----------------------------------------------------------------------
     # Private

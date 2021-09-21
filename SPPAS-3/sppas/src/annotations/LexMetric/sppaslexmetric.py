@@ -93,7 +93,7 @@ class sppasLexMetric(sppasBaseAnnotation):
             elif "separators" == key:
                 self.set_segments_separators(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -190,17 +190,16 @@ class sppasLexMetric(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) time-aligned tokens, or other
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Time-aligned tokens, or other
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be used
-        tier = self.get_input_tier(input_file)
+        tier = self.get_input_tier(input_files)
 
         # Evaluate
         ocrk = OccRank(tier)
@@ -210,7 +209,7 @@ class sppasLexMetric(sppasBaseAnnotation):
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('token_lexmetric_result_of', input_file[0])
+        trs_output.set_meta('token_lexmetric_result_of', input_files[0])
         trs_output.append(occ_tier)
         trs_output.append(rank_tier)
         trs_output.append(sgmt_occ_ann_tier)
@@ -230,10 +229,6 @@ class sppasLexMetric(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-lexm")
-
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")

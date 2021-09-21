@@ -469,7 +469,7 @@ class sppasSignaix(sppasBaseIO):
         delta = float(delta)
         lines = load(filename)
 
-        tier = self.create_tier("Pitch")
+        tier = self.create_tier("PitchHz")
         # The reference time point of each interval is the middle.
         # The radius allows to cover the delta range.
         radius = delta / 2.
@@ -498,7 +498,7 @@ class sppasSignaix(sppasBaseIO):
             raise AioNoTiersError(".hz")
 
         if len(self) > 1:
-            tier = self.find("Pitch", case_sensitive=False)
+            tier = self.find("PitchHz", case_sensitive=False)
             if tier is None:
                 raise AioMultiTiersError("Signaix-Pitch")
         else:

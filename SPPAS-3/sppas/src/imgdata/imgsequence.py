@@ -43,7 +43,7 @@ import os
 import cv2
 import numpy
 
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.calculus.geometry.linear_fct import slope_intercept
 from sppas.src.calculus.geometry.linear_fct import linear_fct
 

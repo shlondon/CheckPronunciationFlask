@@ -40,24 +40,32 @@
 """
 
 import os
+import logging
 
 from sppas.src.config import symbols
 from sppas.src.config import info
+from sppas.src.config import annots
 from sppas.src.utils import u
-import sppas.src.audiodata.aio
 from sppas.src.anndata.aio.aioutils import serialize_labels
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
 from sppas.src.anndata import sppasMedia
 from sppas.src.anndata import sppasLabel
 from sppas.src.anndata import sppasTag
-from sppas.src.config import annots
+import sppas.src.audiodata.aio
 import sppas.src.anndata.aio
 
-from ..SearchIPUs.sppassearchipus import sppasSearchIPUs
+from sppas.src.anndata.anndataexc import AnnDataTypeError
+
+from ..annotationsexc import NoTierInputError
+from ..annotationsexc import EmptyInputError
+from ..annotationsexc import NoChannelInputError
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import AudioChannelError
 from ..baseannot import sppasBaseAnnotation
+from ..searchtier import sppasFindTier
+from ..SearchIPUs.sppassearchipus import sppasSearchIPUs
+from ..autils import SppasFiles
 
 from .fillipus import FillIPUs
 
@@ -89,6 +97,7 @@ class sppasFillIPUs(sppasBaseAnnotation):
 
         """
         super(sppasFillIPUs, self).__init__("fillipus.json", log)
+        self.__audio_filename = None
 
     # -----------------------------------------------------------------------
     # Methods to fix options
@@ -124,7 +133,7 @@ class sppasFillIPUs(sppasBaseAnnotation):
             elif "shift_end" == key:
                 self.set_shift_end(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -205,33 +214,17 @@ class sppasFillIPUs(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def convert(self, input_audio_filename, input_filename):
+    def convert(self, channel, text_tier):
         """Return a tier with transcription aligned to the audio.
 
-        :param input_audio_filename: (str) Input audio file
-        :param input_filename: (str) Input transcription file
+        :param channel: (sppasChannel) Input audio channel
+        :param text_tier: (sppasTier) Input transcription text in a PointTier
 
         """
-        # Get audio and the channel we'll work on
-        audio_speech = sppas.src.audiodata.aio.open(input_audio_filename)
-        n = audio_speech.get_nchannels()
-        if n != 1:
-            raise AudioChannelError(n)
-
-        idx = audio_speech.extract_channel()
-        channel = audio_speech.get_channel(idx)
-
-        # Get the units we'll work on
-        parser = sppasTrsRW(input_filename)
-        trs = parser.read()
-        if len(trs) > 1:
-            pass
-        if len(trs[0]) == 0:
-            pass
         units = list()
-        for a in trs[0]:
+        for a in text_tier:
             units.append(serialize_labels(a.get_labels()))
-        ipus = [u for u in units if u != SIL_ORTHO]
+        ipus = [unit for unit in units if unit != SIL_ORTHO]
 
         # Create the instance to fill in IPUs
         filler = FillIPUs(channel, units)
@@ -244,7 +237,7 @@ class sppasFillIPUs(sppasBaseAnnotation):
         if n != len(ipus):
             return
 
-        # Process the data.
+        # Process the data
         tracks = filler.get_tracks(time_domain=True)
         tier = sppasSearchIPUs.tracks_to_tier(
             tracks,
@@ -262,30 +255,88 @@ class sppasFillIPUs(sppasBaseAnnotation):
         return tier
 
     # -----------------------------------------------------------------------
+
+    def get_inputs(self, input_files):
+        """Return the channel and the tier with ipus.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasChannel, sppasTier)
+
+        """
+        # Get the tier and the channel
+        ext = self.get_input_extensions()
+        audio_ext = ext[0]
+        annot_ext = ext[1]
+        tier = None
+        channel = None
+        audio_filename = ""
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+
+            if channel is None and fe in audio_ext:
+                audio_speech = sppas.src.audiodata.aio.open(filename)
+                n = audio_speech.get_nchannels()
+                if n != 1:
+                    audio_speech.close()
+                    raise AudioChannelError(n)
+                idx = audio_speech.extract_channel()
+                channel = audio_speech.get_channel(idx)
+                audio_filename = filename
+                audio_speech.close()
+
+            elif tier is None and fe in annot_ext:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                # a raw transcription is expected. "raw" must be in the name.
+                tier = sppasFindTier.transcription(trs_input)
+                if "raw" not in tier.get_name().lower():
+                    tier = None
+
+        # Check input tier
+        if tier is None:
+            logging.error("A tier with the raw transcription was not found.")
+            raise NoTierInputError
+        if tier.is_point() is False:
+            logging.error("The tier with the raw transcription should be of type: Point.")
+            raise AnnDataTypeError(tier.get_name(), 'PointTier')
+        if tier.is_empty() is True:
+            raise EmptyInputError(tier.get_name())
+
+        # Check input channel
+        if channel is None:
+            logging.error("No audio file found or invalid one. "
+                          "An audio file with only one channel was expected.")
+            raise NoChannelInputError
+
+        # Set the media to the input tier
+        extm = os.path.splitext(audio_filename)[1].lower()[1:]
+        media = sppasMedia(os.path.abspath(audio_filename), mime_type="audio/"+extm)
+        tier.set_media(media)
+
+        return channel, tier
+
+    # -----------------------------------------------------------------------
     # Apply the annotation on one or several given files
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
         input_filename is a tuple (audio, raw transcription)
 
-        :param input_file: (list of str) (audio, ortho)
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) (audio, ortho)
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
-        input_audio_filename = input_file[0]
-        input_trans_filename = input_file[1]
+        input_channel, input_tier = self.get_inputs(input_files)
 
         # Get the framerate of the audio file
-        audio = sppas.src.audiodata.aio.open(input_file[0])
-        framerate = audio.get_framerate()
-        audio.close()
+        framerate = input_channel.get_framerate()
 
         # Fill in the IPUs
-        tier = self.convert(input_audio_filename, input_trans_filename)
+        tier = self.convert(input_channel, input_tier)
         if tier is None:
             self.logfile.print_message(_info(1296), indent=2, status=-1)
             return None
@@ -293,15 +344,9 @@ class sppasFillIPUs(sppasBaseAnnotation):
         # Create the transcription to put the result
         trs_output = sppasTranscription(self.name)
         trs_output.set_meta("media_sample_rate", str(framerate))
-        trs_output.set_meta('fill_ipus_result_of', input_audio_filename)
-        trs_output.set_meta('fill_ipus_result_of_trs', input_trans_filename)
-
+        trs_output.set_meta('annotation_result_of', input_files[0])
         trs_output.append(tier)
-
-        extm = os.path.splitext(input_audio_filename)[1].lower()[1:]
-        media = sppasMedia(os.path.abspath(input_audio_filename),
-                           mime_type="audio/"+extm)
-        tier.set_media(media)
+        tier.set_media(input_tier.get_media())
 
         # Save in a file
         if output is not None:
@@ -314,25 +359,25 @@ class sppasFillIPUs(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run_for_batch_processing(self, input_file, opt_input_file):
+    def run_for_batch_processing(self, input_files):
         """Perform the annotation on a file.
 
         This method is called by 'batch_processing'. It fixes the name of the
         output file, and call the run method.
-        Can be overridden.
 
-        :param input_file: (list of str) the required input
-        :param opt_input_file: (list of str) the optional input
+        Override to NOT ANNOTATE if an annotation is already existing.
+
+        :param input_files: (list of str) the required inputs for a run
         :returns: output file name or None
 
         """
         # Fix the output file name
-        root_pattern = self.get_out_name(input_file[0])
+        root_pattern = self.get_out_name(input_files[0])
 
         # Is there already an existing IPU-seg (in any format)!
         ext = []
-        for e in sppas.src.anndata.aio.extensions_in:
-            if e not in ('.txt', '.hz', '.PitchTier', '.IntensityTier'):
+        for e in sppasTrsRW.annot_extensions():
+            if e not in ('.txt', ):
                 ext.append(e)
         exists_out_name = sppasBaseAnnotation._get_filename(root_pattern, ext)
 
@@ -356,16 +401,34 @@ class sppasFillIPUs(sppasBaseAnnotation):
         else:
             # Create annotation instance, fix options, run.
             try:
-                new_files = self.run(input_file, opt_input_file, root_pattern)
+                new_files = self.run(input_files, root_pattern)
             except Exception as e:
                 self.logfile.print_message(
                     "{:s}\n".format(str(e)), indent=1, status=-1)
 
         return new_files
 
+    # ----------------------------------------------------------------------
+
+    def get_output_pattern(self):
+        """Pattern this annotation uses in an output filename."""
+        return self._options.get("outputpattern", "")
+
+    # -----------------------------------------------------------------------
+
+    def get_input_patterns(self):
+        """Pattern this annotation expects for its input filename."""
+        return [
+            self._options.get("inputpattern1", ""),  # audio
+            self._options.get("inputpattern2", "")   # text
+            ]
+
     # -----------------------------------------------------------------------
 
     @staticmethod
     def get_input_extensions():
         """Extensions that the annotation expects for its input filename."""
-        return sppas.src.audiodata.aio.extensions
+        return [
+            SppasFiles.get_informat_extensions("AUDIO"),
+            [".txt"]
+            ]

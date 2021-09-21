@@ -38,7 +38,8 @@ import unittest
 
 from sppas.src.config import sppasLogSetup
 from sppas.src.config import paths
-from sppas.src.exceptions import sppasInstallationError
+from sppas.src.config import sppasInstallationError
+
 from ..features import Features
 from ..installer import Installer
 

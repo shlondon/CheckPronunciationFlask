@@ -52,6 +52,7 @@ from sppas import sg, cfg, lgs
 from sppas.src.annotations import sppasAnnotationsManager
 from sppas.src.annotations import sppasLexRep
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.wkps import sppasWkpRW
 
 # ---------------------------------------------------------------------------
@@ -96,6 +97,12 @@ if __name__ == "__main__":
         help='Workspace.')
 
     group_wkp.add_argument(
+        "-I",
+        action='append',
+        metavar="file",
+        help='Input file')
+
+    group_wkp.add_argument(
         "-l",
         metavar="lang",
         choices=parameters.get_langlist(ann_step_idx),
@@ -105,10 +112,10 @@ if __name__ == "__main__":
     group_wkp.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("ANNOT"),
-        choices=parameters.get_outformat_extensions("ANNOT"),
+        default=parameters.get_output_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT_ANNOT"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("ANNOT"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT_ANNOT"))))
 
     group_wkp.add_argument(
         "--log",
@@ -175,7 +182,7 @@ if __name__ == "__main__":
 
     arguments = vars(args)
     for a in arguments:
-        if a not in ('i', 'o', 's', 'r', 'w', 'l', 'e', 'log', 'quiet'):
+        if a not in ('i', 'o', 's', 'r', 'w', 'I', 'l', 'e', 'log', 'quiet'):
             parameters.set_option_value(ann_step_idx, a, str(arguments[a]))
             o = parameters.get_step(ann_step_idx).get_option_by_key(a)
 
@@ -203,15 +210,22 @@ if __name__ == "__main__":
                         a.get_location().get_best().get_end().get_midpoint(),
                         a.get_best_tag().get_content()))
 
-    elif args.w:
+    elif args.w or args.I:
 
         if not args.l:
             print("argparse.py: error: option -l is required with option -w")
             sys.exit(1)
 
-        parser = sppasWkpRW(args.w)
-        wkp = parser.read()
-        parameters.set_workspace(wkp)
+        # Load an existing workspace
+        if args.w:
+            parser = sppasWkpRW(args.w)
+            wkp = parser.read()
+            parameters.set_workspace(wkp)
+
+        # Add input files to the workspace
+        if args.I:
+            for f in args.I:
+                parameters.add_to_workspace(os.path.abspath(f))
 
         # Fix the output file extension and others
         parameters.set_lang(args.l)
@@ -221,7 +235,6 @@ if __name__ == "__main__":
         # Perform the annotation
         process = sppasAnnotationsManager()
         process.annotate(parameters)
-
 
     else:
 

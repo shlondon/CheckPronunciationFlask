@@ -45,7 +45,7 @@
       "id": "inputpattern",
       "type": "str",
       "value": "",
-      "text": "Input file pattern of the image, or video file"
+      "text": "Input pattern of the image, or video file."
     },
     {
       "id": "nbest",

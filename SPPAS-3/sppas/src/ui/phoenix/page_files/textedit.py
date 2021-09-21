@@ -218,9 +218,10 @@ class sppasTextEditDialog(sppasDialog):
     # -----------------------------------------------------------------------
 
     def Notify(self, filenames):
-        evt = CloseEditEvent(files=filenames)
-        evt.SetEventObject(self)
-        wx.PostEvent(self.GetParent(), evt)
+        if self.GetParent() is not None:
+            evt = CloseEditEvent(files=filenames)
+            evt.SetEventObject(self)
+            wx.PostEvent(self.GetParent(), evt)
 
     # -----------------------------------------------------------------------
 

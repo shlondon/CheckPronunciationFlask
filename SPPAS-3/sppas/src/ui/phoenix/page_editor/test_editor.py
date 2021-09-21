@@ -42,7 +42,7 @@ from sppas.src.ui.phoenix.main_settings import WxAppSettings
 
 import sppas.src.ui.phoenix.page_editor.editorpanel as editorpanel
 import sppas.src.ui.phoenix.page_editor.editor as editor
-
+import sppas.src.ui.phoenix.page_editor.searchtag as searchtag
 
 # ----------------------------------------------------------------------------
 # Panel to test
@@ -55,6 +55,9 @@ class TestPanel(wx.Choicebook):
             self,
             parent,
             style=wx.BORDER_NONE | wx.TAB_TRAVERSAL | wx.WANTS_CHARS)
+
+        p = searchtag.TestPanel(self)
+        self.AddPage(p, p.GetName())
 
         #p = editorpanel.TestPanel(self)
         #self.AddPage(p, p.GetName())

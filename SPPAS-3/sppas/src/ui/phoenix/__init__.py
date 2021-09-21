@@ -35,9 +35,9 @@
 """
 
 from sppas.src.config import cfg
-from sppas.src.exceptions import sppasEnableFeatureError
-from sppas.src.exceptions import sppasPackageFeatureError
-from sppas.src.exceptions import sppasPackageUpdateFeatureError
+from sppas.src.config import sppasEnableFeatureError
+from sppas.src.config import sppasPackageFeatureError
+from sppas.src.config import sppasPackageUpdateFeatureError
 
 # Check if installation and feature configuration are matching...
 try:

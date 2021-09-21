@@ -60,6 +60,7 @@ from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyInputError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 
 from .normalize import TextNormalizer
 
@@ -162,7 +163,7 @@ class sppasTextNorm(sppasBaseAnnotation):
             elif key == "occ_dur":
                 self.set_occ_dur(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -283,19 +284,42 @@ class sppasTextNorm(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        annot_ext = self.get_input_extensions()
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+            if tier is None and fe in annot_ext[0]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = sppasFindTier.transcription(trs_input)
+                if tier is not None:
+                    return tier
+
+        # Check input tier
+        logging.error("A tier with an orthographic transcription was not found.")
+        raise NoTierInputError
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) orthographic transcription
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) orthographic transcription
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get input tier to tokenize
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier_input = sppasFindTier.transcription(trs_input)
+        tier_input = self.get_inputs(input_files)
 
         # Tokenize the tier
         tier_faked_tokens, tier_std_tokens, tier_custom = self.convert(tier_input)
@@ -317,7 +341,7 @@ class sppasTextNorm(sppasBaseAnnotation):
                 # trs_output.add_hierarchy_link("TimeAssociation", trs_output[0], tier_occ)
                 # trs_output.add_hierarchy_link("TimeAssociation", trs_output[0], tier_dur)
 
-        trs_output.set_meta('text_normalization_result_of', input_file[0])
+        trs_output.set_meta('text_normalization_result_of', input_files[0])
         trs_output.set_meta('text_normalization_vocab',
                             self.__normalizer.get_vocab_filename())
         trs_output.set_meta('language_iso', "iso639-3")
@@ -325,7 +349,6 @@ class sppasTextNorm(sppasBaseAnnotation):
         trs_output.set_meta('language_name_0', "Undetermined")
         trs_output.set_meta('language_url_0',
                             "https://iso639-3.sil.org/code/"+self.__normalizer.lang)
-        self.transfer_metadata(trs_input, trs_output)
 
         # Save in a file
         if output is not None:
@@ -341,7 +364,7 @@ class sppasTextNorm(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-token")
 

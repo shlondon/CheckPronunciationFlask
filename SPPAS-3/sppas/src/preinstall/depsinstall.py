@@ -1,36 +1,41 @@
-# -*- coding: UTF-8 -*-
+# -*- coding : UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.preinstall.depsinstall.py
+:author:   Florian Hocquet, Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Manage the installer of SPPAS dependencies.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.preinstall.depsinstall.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -50,18 +55,12 @@ from .installer import MacOsInstaller
 class sppasInstallerDeps(object):
     """Main class to manage the installation of external features.
 
-    :author:       Florian Hocquet
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     sppasInstallerDeps is a wrapper of Installer Object.
     It only allows :
-    - to launch the installation process,
-    - to get information, which are important for the users,
-    about the pre-installation.
-    - to configure parameters to get a personalized installation.
+      - to launch the installation process,
+      - to get information, which are important for the users,
+        about the pre-installation.
+      - to configure parameters to get a personalized installation.
 
     For example:
 
@@ -90,7 +89,8 @@ class sppasInstallerDeps(object):
             "mint": DebianInstaller,
             "debian": DebianInstaller,
             "fedora": DnfInstaller,
-            "suse": RpmInstaller
+            "suse": RpmInstaller,
+            "microsoft": DebianInstaller
         },
         "win32": WindowsInstaller,
         "darwin": MacOsInstaller
@@ -107,8 +107,7 @@ class sppasInstallerDeps(object):
         self.__os = None
         self.__set_os()
         self.__installer = self.os()()
-        logging.info("System installer: {}"
-                     "".format(self.__installer.__class__.__name__))
+        logging.info("System installer: {}".format(self.__installer.__class__.__name__))
         if progress is not None:
             self.__installer.set_progress(progress)
 
@@ -185,13 +184,18 @@ class sppasInstallerDeps(object):
         system = sys.platform
         logging.info("Operating system: {}".format(system))
         if system.startswith("linux") is True:
-            linux_distrib = str(os.uname()).split(", ")[3].split("-")[1].split(" ")[0].lower()
-            self.__os = self.LIST_OS["linux"][linux_distrib]
+            distrib = str(os.uname()).split(", ")[3].split("-")[1].split(" ")[0].lower()
+            logging.info("Distrib: {}".format(distrib))
+            if distrib in sppasInstallerDeps.LIST_OS["linux"]:
+                self.__os = sppasInstallerDeps.LIST_OS["linux"][distrib]
+            else:
+                raise OSError("The distrib {:s} for system {:s} is not supported yet.".format(distrib, system))
+
         else:
-            if system not in list(self.LIST_OS.keys()):
+            if system not in list(sppasInstallerDeps.LIST_OS.keys()):
                 raise OSError("The OS {} is not supported yet.".format(system))
             else:
-                self.__os = self.LIST_OS[system]
+                self.__os = sppasInstallerDeps.LIST_OS[system]
 
     # ------------------------------------------------------------------------
 

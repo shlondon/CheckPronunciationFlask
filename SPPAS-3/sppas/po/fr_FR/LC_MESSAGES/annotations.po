@@ -15,7 +15,7 @@ msgstr ""
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Language: en_US\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.4.2\n"
 
 msgid ":INFO 1000: "
 msgstr "Valide. "
@@ -28,6 +28,9 @@ msgstr "Invalide. "
 
 msgid ":INFO 1006: "
 msgstr "Echec. "
+
+msgid ":INFO 1008: "
+msgstr "Inexistant. "
 
 msgid ":INFO 1010: "
 msgstr "Un fichier audio ne doit contenir qu'un seul canal. Ce fichier en contient {number}."
@@ -249,7 +252,10 @@ msgid ":ERROR 1030: "
 msgstr "Aucun fichier d'entrée ou fichier non conforme."
 
 msgid ":ERROR 1035: "
-msgstr "Aucune tier valide trouvée. Consultez la documentation."
+msgstr "Aucune tier valide n'a été trouvée. Consultez la documentation."
+
+msgid ":ERROR 1036: "
+msgstr "Aucun canal audio valide n'a été trouvé. Consultez la documentation."
 
 msgid ":ERROR 1040: "
 msgstr "La tier donnée en entrée n'est pas du type requis."

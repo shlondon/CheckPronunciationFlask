@@ -57,6 +57,8 @@ export PYTHONIOENCODING=UTF-8
 PYTHON=""
 v="0"
 
+# Search for python, version 3
+# ------------------------------------------------------
 echo -n "Search for 'python3' command for Python: "
 for cmd in `which -a python3`;
 do
@@ -82,19 +84,8 @@ else
     echo "OK";
 fi
 
-if [ -z "$PYTHON" ]; then
-  echo -n "Search for 'pythonw' command for Python 2: "
-  for cmd in `which -a pythonw`;
-  do
-      v=$($cmd -c "import sys; print(sys.version_info[0])");
-      if [[ "$v" == "2" ]]; then
-          PYTHON=$cmd;
-          break;
-      fi;
-  done
-fi
-
-# Search for python, v2
+# Search for python, version 2
+# ------------------------------------------------------
 if [ -z "$PYTHON" ]; then
     echo "not found.";
     echo -n "Search for 'python' command for Python 2: ";
@@ -103,6 +94,10 @@ if [ -z "$PYTHON" ]; then
         v=$($cmd -c "import sys; print(sys.version_info[0])");
         if [[ "$v" == "2" ]]; then
             PYTHON=$cmd;
+            echo "[ WARNING ] DEPRECATION: Python 2.7 reached the end of its life.";
+            echo "This is the last version of SPPAS that is supporting this old python.";
+            echo "The next version of SPPAS will require python version 3.8+.";
+            echo "Please upgrade your Python to 3.8+ as Python 2.7 is no longer maintained.";
             break;
         fi;
     done
@@ -137,10 +132,6 @@ fi
 echo "Run the Graphical User Interface...";
 
 if [ "$v" == "2" ]; then
-    echo "DEPRECATION: Python 2.7 reached the end of its life.";
-    echo "Please upgrade your Python to 3.x as Python 2.7 is no longer maintained.";
-    echo -e "No new bug reports, fixes, or changes will be made to SPPAS based";
-    echo "on Python 2, and Python 2 is no longer supported."
     $PYTHON $PROGRAM_DIR/sppas/bin/sppasgui.py
 else
     cd $PROGRAM_DIR

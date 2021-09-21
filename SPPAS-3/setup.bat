@@ -43,73 +43,64 @@ GOTO EndHeader
 color 0F
 SET PYTHONIOENCODING=UTF-8
 
-REM Make sure we have admin right
-set "params=%*"
+REM Make sure we have admin right -- not required anymore
+REM set "params=%*"
 REM cd /d "%~dp0" && ( if exist "%temp%\getadmin.vbs" del "%temp%\getadmin.vbs" ) && fsutil dirty query %systemdrive% 1>nul 2>nul || (  echo Set UAC = CreateObject^("Shell.Application"^) : UAC.ShellExecute "cmd.exe", "/k cd ""%~sdp0"" && %~s0 %params%", "", "runas", 1 >> "%temp%\getadmin.vbs" && "%temp%\getadmin.vbs" && exit /B )
+
+echo Search for python3.exe command
+WHERE python3.exe
+echo Status = %ERRORLEVEL%
+
+if %ERRORLEVEL% EQU 0 (
+    echo ... python3.exe found.
+    color 1E
+    echo Check if wxPython is installed or needs update...
+    timeout /t 5
+    start "" python3.exe .\sppas\bin\preinstall.py --wxpython
+    echo ... done
+) else (
+    echo ... python3.exe not found
+)
+timeout /t 10
 
 echo Search for python3w.exe command
 WHERE pythonw3.exe >nul 2>nul
 
 if %ERRORLEVEL% EQU 0 (
-    echo Command pythonw3.exe was found.
+    echo ... pythonw3.exe found
     color 1E
     start "" pythonw3.exe .\sppas\bin\preinstallgui.py
     REM exit
 
 ) else (
-    echo Command pythonw3.exe was not found.
+    echo pythonw3.exe not found
 
-    echo Search for python3.exe command
-    WHERE python3.exe
-    echo %ERRORLEVEL%
-
+    echo Search for python.exe command
+    WHERE python.exe >nul 2>nul
     if %ERRORLEVEL% NEQ 9009 (
-        echo Command python3.exe was found.
-        color 1E
-        echo Check if wxPython is installed...
-        python3.exe .\sppas\bin\preinstall.py --wxpython
-        if %ERRORLEVEL% NEQ 9009 (
-            echo Launch preinstall GUI script
-            start "" python3.exe .\sppas\bin\preinstallgui.py
-            REM exit
 
+        echo Command python.exe was found.
+        echo Launch checkpy script
+
+        python.exe .\sppas\bin\checkpy.py
+        if %ERRORLEVEL% EQU 0 (
+            echo Launch preinstall script to install wx. Please wait...
+            start "" python.exe .\sppas\bin\preinstall.py --wxpython
+            echo Launch preinstall GUI script
+            start "" python.exe .\sppas\bin\preinstallgui.py
+            REM exit
         ) else (
-            color 04
-            echo The setup failed to install wxpython automatically.
-            echo See http://www.sppas.org/installation.html to do it manually.
+            echo ... but this program requires Python version 3.
         )
 
     ) else (
-        echo Command python3.exe was not found.
-
-        echo Search for python.exe command
-        WHERE python.exe >nul 2>nul
-        if %ERRORLEVEL% NEQ 9009 (
-
-            echo Command python.exe was found.
-            echo Launch checkpy script
-
-            python.exe .\sppas\bin\checkpy.py
-            if %ERRORLEVEL% EQU 0 (
-                echo Launch preinstall script to install wx. Please wait...
-                start "" python.exe .\sppas\bin\preinstall.py --wxpython
-                echo Launch preinstall GUI script
-                start "" python.exe .\sppas\bin\preinstallgui.py
-                REM exit
-            ) else (
-                echo ... but this program requires Python version 3.
-            )
-
-        ) else (
-            echo No Python command was not found.
-            color 4E
-            echo Python is not an internal command of your operating system
-			echo or the environment variable wasn't fixed during its installation.
-            echo Install or re-install it, preferably from the Windows Store.
-        )
+        echo No Python command was not found.
+        color 4E
+        echo Python is not an internal command of your operating system
+        echo or the environment variable wasn't fixed during its installation.
+        echo Install or re-install it, preferably from the Windows Store.
     )
 )
-
 
 REM Close the windows with a delay to let some time to read messages
 timeout /t 20

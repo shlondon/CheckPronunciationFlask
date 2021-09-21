@@ -36,7 +36,7 @@
 
 import unittest
 
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.utils import u
 from sppas.src.wkps.fileref import sppasCatReference, sppasRefAttribute
 from sppas.src.wkps.filebase import States

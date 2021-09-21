@@ -34,9 +34,12 @@
 
 """
 
+import os
+import sys
 import wx
 import logging
-
+sppas_dir = os.getenv("SPPAS")
+sys.path.insert(0, sppas_dir)
 from sppas.src.config import sppasAppConfig
 from sppas.src.ui.phoenix.main_settings import WxAppSettings
 
@@ -65,6 +68,7 @@ class TestPanel(wx.Choicebook):
             self,
             parent,
             style=wx.BORDER_NONE | wx.TAB_TRAVERSAL | wx.WANTS_CHARS)
+        self.AddPage(buttonbox.TestPanelRadioBox(self), "RadioBox & ToggleBox")
 
         self.AddPage(basedcwindow.TestPanel(self), "Base DC Window")
         self.AddPage(labelwindow.TestPanel(self), "Label Window")
@@ -74,7 +78,6 @@ class TestPanel(wx.Choicebook):
         self.AddPage(slider.TestPanel(self), "Slider")
         self.AddPage(toolbar.TestPanel(self), "Toolbar")
         self.AddPage(listctrl.TestPanel(self), "ListCtrl")
-        self.AddPage(buttonbox.TestPanelRadioBox(self), "RadioBox & ToggleBox")
         self.AddPage(combobox.TestPanelComboBox(self), "ComboBox")
         self.AddPage(popup.TestPanel(self), "Popup")
         self.AddPage(frame.TestPanel(self), "Frame")

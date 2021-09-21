@@ -36,7 +36,7 @@
 import os
 
 from sppas.src.config import symbols
-from sppas.src.exceptions import IndexRangeException
+from sppas.src.config import IndexRangeException
 from sppas.src.resources import sppasWordStrain
 from sppas.src.anndata import sppasTier
 from sppas.src.anndata import sppasLabel

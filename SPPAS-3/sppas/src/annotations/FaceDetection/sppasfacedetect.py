@@ -40,10 +40,11 @@
 """
 
 import os
+import logging
 
 from sppas.src.config import cfg
 from sppas.src.config import annots
-from sppas.src.exceptions import sppasEnableFeatureError
+from sppas.src.config import sppasEnableFeatureError
 
 from sppas.src.imgdata import image_extensions
 from sppas.src.imgdata import sppasImage
@@ -54,6 +55,7 @@ from sppas.src.videodata import sppasCoordsVideoWriter
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import NoInputError
 from ..baseannot import sppasBaseAnnotation
+from ..autils import SppasFiles
 
 from .imgfacedetect import ImageFaceDetection
 from .videofacedetect import VideoFaceDetection
@@ -146,7 +148,7 @@ class sppasFaceDetection(sppasBaseAnnotation):
             elif key == "height":
                 self.set_img_height(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -293,42 +295,63 @@ class sppasFaceDetection(sppasBaseAnnotation):
         # and/or a list of images (face or portrait) in a folder
         if output is not None:
             output_file = self.fix_out_file_ext(output, out_format="IMAGE")
-            new_files = self.__img_writer.write(image, coords, output_file, self.get_pattern())
+            new_files = self.__img_writer.write(image, coords, output_file, self.get_output_pattern())
             return new_files
 
         return coords
 
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
-        """Run the automatic annotation process on a single input.
+    def get_inputs(self, input_files):
+        """Return the media filenames.
 
-        :param input_file: (list of str) Video or image file
-        :param opt_input_file: (list of str) ignored
-        :param output: (str) the output name
-        :returns: (list of sppasCoords) Coordinates of detected faces or filenames
+        :param input_files: (list)
+        :raise: NoInputError
+        :return: (str) Name of the media file
 
         """
-        # Input is either a video or an image
-        fn, ext = os.path.splitext(input_file[0])
-        self.__video_writer.set_image_extension(self._out_extensions["IMAGE"])
-        self.__video_writer.set_video_extension(self._out_extensions["VIDEO"])
-        self.__video_writer.close()
+        media_ext = self.get_input_extensions()
+        media = None
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+            if media is None and fe in media_ext[0]:
+                return filename
 
-        if ext in image_extensions:
-            return self.image_face_detect(input_file[0], output)
-
-        if ext in video_extensions:
-            result = self.__fdv.video_face_detect(input_file[0], self.__video_writer, output)
-            self.__video_writer.close()
-            return result
-
-        self.__video_writer.close()
+        logging.error("Neither a video nor an image was found.")
         raise NoInputError
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def run(self, input_files, output=None):
+        """Run the automatic annotation process on a single input.
+
+        :param input_files: (list of str) Video or image file
+        :param output: (str) the output name
+        :returns: (list of sppasCoords) Coordinates of detected faces or filenames
+
+        """
+        media_file = self.get_inputs(input_files)
+
+        # Input is either a video or an image
+        self.__video_writer.set_image_extension(self._out_extensions["IMAGE"])
+        self.__video_writer.set_video_extension(self._out_extensions["VIDEO"])
+        self.__video_writer.close()
+
+        fn, ext = os.path.splitext(media_file)
+        result = list()
+
+        if ext in video_extensions:
+            result = self.__fdv.video_face_detect(media_file, self.__video_writer, output)
+            self.__video_writer.close()
+
+        elif ext in image_extensions:
+            result = self.image_face_detect(media_file, output)
+
+        return result
+
+    # -----------------------------------------------------------------------
+
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         pattern = "-face"
         if self._options["portrait"] is True:
@@ -344,6 +367,7 @@ class sppasFaceDetection(sppasBaseAnnotation):
         Priority is given to video files, then image files.
 
         """
-        ext = [e for e in video_extensions]
-        ext.extend(image_extensions)
-        return ext
+        out_ext = list(SppasFiles.get_informat_extensions("VIDEO"))
+        for img_ext in SppasFiles.get_informat_extensions("IMAGE"):
+            out_ext.append(img_ext)
+        return [out_ext]

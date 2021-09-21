@@ -63,9 +63,9 @@ try:
 
     from sppas.src.config import cfg
     from sppas.src.config import sppasLogFile
-    from sppas.src.exceptions import sppasEnableFeatureError
-    from sppas.src.exceptions import sppasPackageFeatureError
-    from sppas.src.exceptions import sppasPackageUpdateFeatureError
+    from sppas.src.config import sppasEnableFeatureError
+    from sppas.src.config import sppasPackageFeatureError
+    from sppas.src.config import sppasPackageUpdateFeatureError
     from sppas.src.ui.phoenix import sppasInstallApp
 except Exception as e:
     import traceback

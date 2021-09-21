@@ -260,6 +260,8 @@ class sppasAnnotationsSettings(sppasBaseSettings):
 
             # default file extension for annotated files created by SPPAS
             annot_extension=".xra",
+            measure_extension=".PitchTier",  # the .mra format must be developed!
+            table_extension=".arff",         # the .tra format must be developed!
             audio_extension=".wav",
             video_extension=".mp4",
             image_extension=".jpg",
@@ -270,8 +272,9 @@ class sppasAnnotationsSettings(sppasBaseSettings):
             #  - interaction = two input files of different speakers
             types=("STANDALONE", "SPEAKER", "INTERACTION"),
 
-            # all the output formats of automatic annotations
-            outformat=("ANNOT", "AUDIO", "IMAGE", "VIDEO"),
+            # all the file formats for automatic annotations.
+            # there are 4 main categories, and 3 sub-categories for the ANNOT one.
+            typeformat=("ANNOT", "ANNOT_ANNOT", "ANNOT_MEASURE", "ANNOT_TABLE", "AUDIO", "IMAGE", "VIDEO"),
 
             # standard iso639-3 code for an undetermined language.
             UNDETERMINED="und"

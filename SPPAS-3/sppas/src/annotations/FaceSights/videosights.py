@@ -43,7 +43,7 @@ import os
 import logging
 import codecs
 
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.imgdata import sppasCoords
 from sppas.src.videodata import sppasCoordsVideoBuffer
 from sppas.src.videodata import sppasCoordsVideoWriter

@@ -46,8 +46,8 @@ import logging
 
 from sppas.src.config import annots
 from sppas.src.config import sppasTrash
-from sppas.src.exceptions import sppasExtensionWriteError
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasExtensionWriteError
+from sppas.src.config import sppasTypeError
 from sppas.src.imgdata import sppasCoords
 from sppas.src.imgdata import sppasCoordsImageWriter
 from sppas.src.imgdata import image_extensions

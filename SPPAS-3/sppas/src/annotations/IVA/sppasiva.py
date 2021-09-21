@@ -39,6 +39,7 @@
 
 """
 
+import os
 import logging
 
 from sppas.src.utils.makeunicode import sppasUnicode
@@ -54,6 +55,7 @@ from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import NoTierInputError
 from ..annotationsexc import BadInputError
 from ..annotationsexc import EmptyOutputError
+from ..autils import SppasFiles
 
 from .intervalvaluesanalysis import IntervalValuesAnalysis
 
@@ -124,7 +126,7 @@ class sppasIVA(sppasBaseAnnotation):
             elif "linreg" == key:
                 self.set_eval(linreg=opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -413,6 +415,7 @@ class sppasIVA(sppasBaseAnnotation):
             logging.error("Tier with segments not found: {:s}".format(self._options['segments']))
             raise NoTierInputError
         if tier_segments_input.is_interval() is False:
+            logging.error("The tier with segments should be of type: Interval")
             raise BadInputError
         if any((tier_values_input.is_float(), tier_values_input.is_int())) is False:
             raise BadInputError
@@ -423,23 +426,19 @@ class sppasIVA(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) Values and/or Segments in a single file or in different ones
-        :param opt_input_file: (list of str) Values and/or Segments in a single file or in different ones
+        :param input_files: (list of str) Values and Segments in a single file or in different ones
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
-        # Get the input tiers 
-        if opt_input_file is not None:
-            input_file.extend(opt_input_file)
-        tier_values, tier_segments = self.get_input_tiers(input_file)
+        tier_values, tier_segments = self.get_input_tiers(input_files)
         
         # Estimate IVA on the tiers
         trs_output = self.convert(tier_values, tier_segments)
-        trs_output.set_meta('iva_result_of', input_file[0])
+        trs_output.set_meta('iva_result_of', input_files[0])
 
         # Save result in a file
         if output is not None:
@@ -455,17 +454,18 @@ class sppasIVA(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-iva")
 
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")
+    # -----------------------------------------------------------------------
 
-    def get_input_opt_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputoptpattern", "")
+        return [
+            self._options.get("inputpattern1", ""),
+            self._options.get("inputpattern2", "-palign")
+            ]
 
     # -----------------------------------------------------------------------
 
@@ -473,28 +473,11 @@ class sppasIVA(sppasBaseAnnotation):
     def get_input_extensions():
         """Extensions that the annotation expects for its input filename.
 
-        An annotated file with measure values (pitch, intensity...)
-
-        """
-        # all extension of measure files (neither annotation nor table)
-        annot_ext = sppasTrsRW.measure_extensions()
-        # all extensions with a reader
-        all_ext_in = sppasTrsRW.extensions_in()
-        # return a AND of both previous lists, add the dot to each extension
-        return ["." + e for e in annot_ext if e in all_ext_in]
-
-    # -----------------------------------------------------------------------
-
-    @staticmethod
-    def get_opt_input_extensions():
-        """Extensions that the annotation expects for its input filename.
-
+        An annotated file with measure values (pitch, intensity...), and
         An annotated file with a sppasTier of type 'interval'.
 
         """
-        # all extension of measure files (neither annotation nor table)
-        annot_ext = sppasTrsRW.annot_extensions()
-        # all extensions with a reader
-        all_ext_in = sppasTrsRW.extensions_in()
-        # return a AND of both previous lists, add the dot to each extension
-        return ["." + e for e in annot_ext if e in all_ext_in]
+        return [
+            SppasFiles.get_informat_extensions("ANNOT_MEASURE"),
+            SppasFiles.get_informat_extensions("ANNOT_ANNOT")
+            ]

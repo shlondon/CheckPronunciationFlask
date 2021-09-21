@@ -15,7 +15,7 @@ msgstr ""
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Language: en_US\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.4.2\n"
 
 # -----------------------------------------
 # :INFO:
@@ -31,6 +31,9 @@ msgstr "Invalid. "
 
 msgid ":INFO 1006: "
 msgstr "Failed. "
+
+msgid ":INFO 1008: "
+msgstr "Missing. "
 
 msgid ":INFO 1010: "
 msgstr "An audio file must contain only 1 channel but this file contains {number} channels."
@@ -252,6 +255,9 @@ msgstr "Missing or invalid input file."
 
 msgid ":ERROR 1035: "
 msgstr "Missing input tier. Please read the documentation."
+
+msgid ":ERROR 1036: "
+msgstr "Missing input audio channel. Please read the documentation."
 
 msgid ":ERROR 1040: "
 msgstr "Bad input tier type."

@@ -23,13 +23,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern (time-aligned words or lemmas)"
+      "text": "Pattern of the input file with time-aligned words or lemmas."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-spkrep",
-      "text": "Output file pattern"
+      "text": "Pattern of the file with detected lexical reprises"
     },
     {
       "id": "span",

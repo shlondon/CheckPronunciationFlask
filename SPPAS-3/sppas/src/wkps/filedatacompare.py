@@ -54,8 +54,7 @@
 
 import re
 
-from sppas.src.exceptions import sppasTypeError
-
+from sppas.src.config import sppasTypeError
 from sppas.src.utils.makeunicode import text_type
 from sppas.src.structs import sppasBaseCompare
 

@@ -23,13 +23,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern (time-aligned phonemes)"
+      "text": "Pattern of the input file with time-aligned phonemes."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-syll",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with time-aligned syllables."
     },
     {
       "id": "usesphons",

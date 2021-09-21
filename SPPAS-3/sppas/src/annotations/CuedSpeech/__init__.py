@@ -51,7 +51,7 @@ is based on the following principles:
 """
 
 from sppas.src.config import cfg
-from sppas.src.exceptions import sppasEnableFeatureError
+from sppas.src.config import sppasEnableFeatureError
 
 from .lpckeys import CuedSpeechKeys
 

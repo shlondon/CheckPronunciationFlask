@@ -39,11 +39,13 @@
 
 """
 
+import os
 import logging
-from sppas.src.videodata import video_extensions
 
 from ..annotationsexc import AnnotationOptionError
 from ..baseannot import sppasBaseAnnotation
+from ..autils import SppasFiles
+from ..annotationsexc import NoInputError
 
 from .identifycoords import VideoCoordsIdentification
 from .kidswriter import sppasKidsVideoWriter
@@ -53,6 +55,8 @@ from .kidswriter import sppasKidsVideoWriter
 
 class sppasFaceIdentifier(sppasBaseAnnotation):
     """SPPAS integration of the automatic video coordinates identification.
+
+    Requires both an image/video and a CSV file with face coordinates.
 
     """
 
@@ -107,7 +111,7 @@ class sppasFaceIdentifier(sppasBaseAnnotation):
             elif key == "height":
                 self.set_img_height(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -205,24 +209,57 @@ class sppasFaceIdentifier(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the media and the csv filenames.
+
+        :param input_files: (list)
+        :raise: NoInputError
+        :return: (str, str) Names of the 2 expected files
+
+        """
+        ext = self.get_input_extensions()
+        media_ext = ext[0]
+        csv_ext = ext[1]
+        media = None
+        csv = None
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+
+            if media is None and fe in media_ext:
+                # The video or the image is found.
+                media = filename
+            elif csv is None and fe.lower() in csv_ext:
+                csv = filename
+
+        if media is None:
+            logging.error("No video was found.")
+            raise NoInputError
+
+        if csv is None:
+            logging.error("The CSV file with faces was not found.")
+            raise NoInputError
+
+        return media, csv
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) (video ) Video file
-        :param opt_input_file: (list of str) CSV file with coords of faces -- REQUIRED
+        :param input_files: (list of str) (video ) Video file, CSV file with coords of faces
         :param output: (str) the output base name for files
         :returns: (list) Either the list of list of detected faces or the list
         of all created files.
 
         """
         # Get and open the video filename from the input
-        video_file = input_file[0]
-        csv_file = opt_input_file[0]
+        video_file, csv_file = self.get_inputs(input_files)
         self.__video_writer.set_video_extension(self._out_extensions["VIDEO"])
 
         # Assign a person identity to the faces
-        if output.endswith(self.get_pattern()):
-            output = output[:-len(self.get_pattern())]
+        if output.endswith(self.get_output_pattern()):
+            output = output[:-len(self.get_output_pattern())]
+
         result = self.__pfv.video_identity(video_file, csv_file, self.__video_writer, output)
         self.__video_writer.close()
 
@@ -230,19 +267,29 @@ class sppasFaceIdentifier(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_input_patterns(self):
+        """Patterns this annotation expects for its input filenames.
+
+        """
+        return [
+            self._options.get("inputpattern", ""),
+            self._options.get("inputoptpattern", '-face')
+            ]
+
+    # -----------------------------------------------------------------------
+
+    def get_output_pattern(self):
         """Pattern this annotation adds to the output filename."""
         return self._options.get("outputpattern", "-ident")
 
     # -----------------------------------------------------------------------
 
-    def get_opt_input_pattern(self):
-        """Pattern that the annotation will use as input for the CSV."""
-        return self._options.get("inputoptpattern", '-face')
-
-    # -----------------------------------------------------------------------
-
     @staticmethod
     def get_input_extensions():
-        """Extensions that the annotation expects for its input filename."""
-        return video_extensions
+        """Extensions that the annotation expects for its input filename.
+
+        """
+        return [
+            SppasFiles.get_informat_extensions("VIDEO"),
+            [".csv"]
+            ]

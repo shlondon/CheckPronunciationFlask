@@ -41,7 +41,7 @@
 
 import logging
 
-from sppas.src.exceptions import sppasError
+from sppas.src.config import sppasError
 from sppas.src.videodata import sppasCoordsVideoBuffer
 
 from .imgfacedetect import ImageFaceDetection

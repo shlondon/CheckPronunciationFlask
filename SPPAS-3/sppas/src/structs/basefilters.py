@@ -34,8 +34,8 @@
 
 """
 
-from sppas.src.exceptions import sppasValueError
-from sppas.src.exceptions import sppasKeyError
+from sppas.src.config import sppasValueError
+from sppas.src.config import sppasKeyError
 
 # ---------------------------------------------------------------------------
 

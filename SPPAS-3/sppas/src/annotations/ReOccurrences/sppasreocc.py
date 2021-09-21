@@ -1,47 +1,54 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.ReOccurrences.sppasreocc.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of ReOccurrences automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.ReOccurrences.sppasreocc.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
-from sppas.src.exceptions import IndexRangeException
+import logging
 
+from sppas.src.config import IndexRangeException
 from sppas.src.utils import sppasUnicode
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
 
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 from ..baseannot import sppasBaseAnnotation
 
 from .reoccurrences import ReOccurences
@@ -53,19 +60,10 @@ from .reoccset import sppasAnnReOccSet
 class sppasReOcc(sppasBaseAnnotation):
     """SPPAS integration of the automatic re-occurrences annotation.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
-
     """
 
     def __init__(self, log=None):
         """Create a new sppasReOcc instance with only the general rules.
-
-        Log is used for a better communication of the annotation process and its
-        results. If None, logs are redirected to the default logging system.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -95,7 +93,7 @@ class sppasReOcc(sppasBaseAnnotation):
             elif "span" == key:
                 self.set_span(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -172,40 +170,61 @@ class sppasReOcc(sppasBaseAnnotation):
     # Apply the annotation on a given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return 2 tiers with name given in options.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        if len(input_files) != 2:
+            raise Exception("Invalid format of input files.")
+
+        tier_src = None
+        for filename in input_files[0]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_src is None:
+                tier_src = trs_input.find(self._options['tiername'], case_sensitive=False)
+        if tier_src is None:
+            logging.error("A source tier with time-aligned items was expected but not found.")
+            raise NoTierInputError
+
+        tier_echo = None
+        for filename in input_files[1]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_echo is None:
+                tier_echo = trs_input.find(self._options['tiername'], case_sensitive=False)
+        if tier_echo is None:
+            logging.error("An echo tier with time-aligned items was expected but not found.")
+            raise NoTierInputError
+
+        return tier_src, tier_echo
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
         Input file is a tuple with 2 files:
         the main speaker and the echoing speaker.
 
-        :param input_file: (list of str) (time-aligned items, time-aligned items)
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of list of str) Time-aligned items, Time-aligned items
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
-        # Get the tier to be used
-        parser1 = sppasTrsRW(input_file[0])
-        trs_input1 = parser1.read()
-        parser2 = sppasTrsRW(input_file[1])
-        trs_input2 = parser2.read()
-
-        tier_spk1 = trs_input1.find(self._options['tiername'], case_sensitive=False)
-        tier_spk2 = trs_input2.find(self._options['tiername'], case_sensitive=False)
-
-        if tier_spk1 is None or tier_spk2 is None:
-            raise Exception("Tier with name '{:s}' not found in input files."
-                            "".format(self._options['tiername']))
+        # Get the tiers to be used
+        tier_spk1, tier_spk2 = self.get_inputs(input_files)
 
         # Re-occurrences Automatic Detection
         new_tiers = self.detection(tier_spk1, tier_spk2)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('reoccurrences_result_of_src', input_file[0])
-        trs_output.set_meta('reoccurrences_result_of_echo', input_file[1])
-        self.transfer_metadata(trs_input1, trs_output)
-
+        trs_output.set_meta('annotation_result_of', input_files[0][0])
         for tier in new_tiers:
             trs_output.append(tier)
 
@@ -224,10 +243,6 @@ class sppasReOcc(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-reocc")
-
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")

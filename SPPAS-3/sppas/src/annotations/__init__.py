@@ -58,6 +58,7 @@ Requires the following other packages:
 
 """
 
+from .autils import SppasFiles
 from .Activity import sppasActivity
 from .Align import sppasAlign
 from .FillIPUs import sppasFillIPUs
@@ -92,6 +93,7 @@ from .manager import sppasAnnotationsManager
 
 
 __all__ = (
+    'SppasFiles',
     'sppasMomel',
     'sppasIntsint',
     'sppasFillIPUs',
@@ -101,6 +103,7 @@ __all__ = (
     'sppasAlign',
     'sppasSyll',
     'sppasTGA',
+    'sppasIVA',
     'sppasSelfRepet',
     'sppasActivity',
     'sppasRMS',

@@ -205,6 +205,26 @@ class ToggleTextButton(TextButton):
         evt.SetPressed(value)
         self.GetEventHandler().ProcessEvent(evt)
 
+    # -----------------------------------------------------------------------
+
+    def GetPenBackgroundColour(self):
+        """Get the background color for the brush.
+
+        returned background is the normal background if the window is enabled but
+        lightness and transparency is modified if the window is disabled or
+        selected.
+
+        """
+        color = self.GetBackgroundColour()
+
+        if self._state[1] == WindowState().selected:
+            return self.GetHighlightedColour(color, 10)
+
+        if self.IsEnabled() is True:
+            return color
+
+        return self.GetHighlightedColour(color, -5)
+
 # ---------------------------------------------------------------------------
 
 
@@ -361,6 +381,26 @@ class ToggleButton(BitmapTextButton):
         evt.SetEventObject(self)
         evt.SetPressed(value)
         self.GetEventHandler().ProcessEvent(evt)
+
+    # -----------------------------------------------------------------------
+
+    def GetPenBackgroundColour(self):
+        """Get the background color for the brush.
+
+        returned background is the normal background if the window is enabled but
+        lightness and transparency is modified if the window is disabled or
+        selected.
+
+        """
+        color = self.GetBackgroundColour()
+
+        if self._state[1] == WindowState().selected:
+            return self.GetHighlightedColour(color, 10)
+
+        if self.IsEnabled() is True:
+            return color
+
+        return self.GetHighlightedColour(color, -5)
 
 # ---------------------------------------------------------------------------
 

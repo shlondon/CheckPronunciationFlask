@@ -43,9 +43,9 @@ import os
 import cv2
 import numpy
 
-from sppas.src.exceptions import sppasIOError
-from sppas.src.exceptions import sppasTypeError
-from sppas.src.exceptions import NegativeValueError
+from sppas.src.config import sppasIOError
+from sppas.src.config import sppasTypeError
+from sppas.src.config import NegativeValueError
 from sppas.src.calculus.geometry.linear_fct import slope_intercept
 from sppas.src.calculus.geometry.linear_fct import linear_fct
 
@@ -558,23 +558,36 @@ class sppasImage(numpy.ndarray):
     def irotate(self, angle, center=None, scale=1.0):
         """Return a new array with the image rotated to the given angle.
 
+        This method is part of imutils under the terms of the MIT License (MIT)
+        Copyright (c) 2015-2016 Adrian Rosebrock, http://www.pyimagesearch.com
+        See here for details:
+        https://www.pyimagesearch.com/2017/01/02/rotate-images-correctly-with-opencv-and-python/
+
         :param angle: (float) Rotation angle in degrees.
         :param center: (int) Center of the rotation in the source image.
         :param scale: (float) Isotropic scale factor.
         :return: (sppasImage)
 
         """
-        # grab the dimensions of the image
+        # grab the dimensions of the image and then determine the center
         (h, w) = self.shape[:2]
-
-        # if the center is None, initialize it as the center of the image
         if center is None:
             center = (w // 2, h // 2)
 
-        # perform the rotation
-        matrix = cv2.getRotationMatrix2D(center, angle, scale)
-        rotated = cv2.warpAffine(self, matrix, (w, h))
-
+        # grab the rotation matrix (applying the negative of the
+        # angle to rotate clockwise), then grab the sine and cosine
+        # (i.e., the rotation components of the matrix)
+        matrix = cv2.getRotationMatrix2D(center, -angle, scale)
+        cos = numpy.abs(matrix[0, 0])
+        sin = numpy.abs(matrix[0, 1])
+        # compute the new bounding dimensions of the image
+        new_width = int((h * sin) + (w * cos))
+        new_height = int((h * cos) + (w * sin))
+        # adjust the rotation matrix to take into account translation
+        matrix[0, 2] += (new_width // 2) - center[0]
+        matrix[1, 2] += (new_height // 2) - center[1]
+        # perform the actual rotation and return the image
+        rotated = cv2.warpAffine(self, matrix, (new_width, new_height))
         return sppasImage(input_array=rotated)
 
     # ------------------------------------------------------------------------

@@ -1,41 +1,46 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.Activity.sppasactivity.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of Activity automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Copyright (C) 2011-2021  Brigitte Bigi
-        Laboratoire Parole et Langage, Aix-en-Provence, France
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        Use of this software is governed by the GNU Public License, version 3.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        This banner notice must not be removed.
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-        ---------------------------------------------------------------------
+    This banner notice must not be removed.
 
-    src.annotations.Activity.sppasactivity.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    -------------------------------------------------------------------------
 
 """
+
+import os
+import logging
 
 from sppas.src.config import info, annots
 from sppas.src.anndata import sppasTrsRW
@@ -58,17 +63,10 @@ MSG_EXTRA_TIER = (info(1270, "annotations"))
 class sppasActivity(sppasBaseAnnotation):
     """SPPAS integration of the Activity generation.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     """
 
     def __init__(self, log=None):
         """Create a new sppasActivity instance.
-
-        Log is used for a better communication of the annotation process and
-        its results.
-        If None, logs are redirected to the default logging system.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -97,7 +95,7 @@ class sppasActivity(sppasBaseAnnotation):
             if "duration" == key:
                 self.set_duration_tier(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -123,7 +121,7 @@ class sppasActivity(sppasBaseAnnotation):
         :param tier: (sppasTier)
         :param tmin: (sppasPoint)
         :param tmax: (sppasPoint)
-        :returns: (tier, tier)
+        :returns: (sppasTier, sppasTier)
 
         """
         try:
@@ -140,7 +138,7 @@ class sppasActivity(sppasBaseAnnotation):
             duration = sppasTier('ActivityDuration')
             for a in activity:
                 interval = a.get_location().get_best()
-                dur = interval.duration().get_value()
+                dur = round(interval.duration().get_value(), 6)
                 duration.create_annotation(
                     sppasLocation(interval.copy()),
                     sppasLabel(sppasTag(dur, tag_type="float"))
@@ -150,39 +148,53 @@ class sppasActivity(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        annot_ext = self.get_input_extensions()
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+
+            if tier is None and fe in annot_ext[0]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = sppasFindTier.aligned_tokens(trs_input)
+                if tier is not None:
+                    tmin = trs_input.get_min_loc()
+                    tmax = trs_input.get_max_loc()
+                    return tier, tmin, tmax
+
+        # Check input tier
+        logging.error("Tier with time-aligned tokens not found.")
+        raise NoTierInputError
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
         Important: options could be changed!
 
-        :param input_file: (list of str) (time-aligned tokens)
-        :param opt_input_file: (list of str) Ignored.
+        :param input_files: (list of str) Time-aligned tokens
         :param output: (str) the output name - either filename or basename
         :returns: (sppasTranscription)
 
         """
-        # Get the time-aligned tokens tier
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tok_tier = sppasFindTier.aligned_tokens(trs_input)
-        if tok_tier is None:
-            raise NoTierInputError
-
-        tmin = trs_input.get_min_loc()
-        tmax = trs_input.get_max_loc()
+        tok_tier, tmin, tmax = self.get_inputs(input_files)
         activity, duration = self.convert(tok_tier, tmin, tmax)
 
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('token_activity_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0])
         trs_output.append(activity)
-
-        # if duration is not None:
-        #     try:
-        #         trs_output.append(duration)
-        #         trs_output.add_hierarchy_link("TimeAssociation", activity, duration)
-        #     except:
-        #         logging.error('No hierarchy was created between activity and duration.')
+        if duration is not None:
+            trs_output.append(duration)
 
         # Save results
         if output is not None:
@@ -195,10 +207,10 @@ class sppasActivity(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_input_patterns(self):
+        """List of patterns this annotation expects for its input filenames."""
+        return [self._options.get("inputpattern", '-palign')]
+
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-activity")
-
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", '-palign')

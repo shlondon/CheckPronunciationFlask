@@ -17,19 +17,19 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-activity",
-      "text": "Input file pattern"
+      "text": "Pattern of the input file."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-overlaps",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with overlaps."
     },
     {
       "id": "tiername",
       "type": "str",
       "value": "Activity",
-      "text": "Name of the tier to search for overlaps"
+      "text": "Name of the tier to detect overlaps"
     },
     {
       "id": "ignore",

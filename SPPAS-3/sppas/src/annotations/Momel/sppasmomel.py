@@ -1,42 +1,45 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.Momel.sppasmomel.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of the Momel automatic annotation.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Copyright (C) 2011-2021  Brigitte Bigi
-        Laboratoire Parole et Langage, Aix-en-Provence, France
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        Use of this software is governed by the GNU Public License, version 3.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        This banner notice must not be removed.
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-        ---------------------------------------------------------------------
+    This banner notice must not be removed.
 
-    src.annotations.Momel.sppasmomel.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    -------------------------------------------------------------------------
 
 """
 
+from sppas.src.anndata.aio.praat import sppasPitchTier
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
 from sppas.src.anndata import sppasTier
@@ -47,10 +50,11 @@ from sppas.src.anndata import sppasTag
 
 from sppas.src.structs import sppasOption
 
-import sppas.src.anndata.aio
 from sppas.src.config import annots
 
+from ..autils import SppasFiles
 from ..baseannot import sppasBaseAnnotation
+from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyInputError
 from ..annotationsexc import NoTierInputError
@@ -62,9 +66,6 @@ from .momel import Momel
 
 class sppasMomel(sppasBaseAnnotation):
     """SPPAS integration of Momel.
-
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
 
     """
 
@@ -137,7 +138,7 @@ class sppasMomel(sppasBaseAnnotation):
             elif "elim_glitch" == key:
                 self.set_option_elim_glitch(value)
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -199,13 +200,13 @@ class sppasMomel(sppasBaseAnnotation):
         """
         parser = sppasTrsRW(input_filename)
         trs = parser.read()
-        pitch_tier = trs.find("Pitch")
+        pitch_tier = sppasFindTier.pitch(trs)
         if pitch_tier is None:
-            pitch_tier = trs.find("PitchTier")
-            if pitch_tier is not None:
-                pitch_list = trs.to_pitch()
-            else:
-                raise NoTierInputError
+            raise NoTierInputError
+
+        if isinstance(trs, sppasPitchTier) is True:
+            # Pitch values were estimated by Praat.
+            pitch_list = trs.to_pitch()
         else:
             pitch_list = [round(a.get_best_tag().get_typed_content(), 6)
                           for a in pitch_tier]
@@ -325,17 +326,16 @@ class sppasMomel(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) pitch values
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Pitch values
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
         # Get pitch values from the input
-        pitch = self.fix_pitch(input_file[0])
+        pitch = self.fix_pitch(input_files[0])
 
         # Search for anchors
         anchors_tier = self.convert(pitch)
@@ -345,7 +345,7 @@ class sppasMomel(sppasBaseAnnotation):
         # Fix result
         trs_output = sppasTranscription(self.name)
         trs_output.append(anchors_tier)
-        trs_output.set_meta('annotation_result_of', input_file[0])
+        trs_output.set_meta('annotation_result_of', input_files[0])
 
         if output is not None:
             output_file = self.fix_out_file_ext(output)
@@ -357,7 +357,7 @@ class sppasMomel(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-momel")
 
@@ -366,10 +366,4 @@ class sppasMomel(sppasBaseAnnotation):
     @staticmethod
     def get_input_extensions():
         """Extensions that the annotation expects for its input filename."""
-        # all extension of measure files (neither annotation nor table)
-        annot_ext = sppasTrsRW.measure_extensions()
-        # all extensions with a reader
-        all_ext_in = sppasTrsRW.extensions_in()
-        # AND of both previous list
-        # Add the dot to each extension and return the list
-        return ["." + e for e in annot_ext if e in all_ext_in]
+        return [SppasFiles.get_informat_extensions("ANNOT_MEASURE")]

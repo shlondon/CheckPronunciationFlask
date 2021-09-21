@@ -37,11 +37,13 @@
     -------------------------------------------------------------------------
 
 *****************************************************************************
-config: configuration of SPPAS
+config: configuration & globals of SPPAS
 *****************************************************************************
 
 This package includes classes to fix all global parameters. It does not
 requires any other package but all other packages of SPPAS are requiring it!
+
+All classes of this package are compatible with any version of python.
 
 """
 
@@ -75,6 +77,31 @@ from .appcfg import sppasAppConfig
 
 # Requires the settings, appcfg and process
 from .support import sppasPostInstall
+
+# Requires error, from po
+from .exceptions import sppasError               # 0000
+from .exceptions import sppasTypeError           # 0100
+from .exceptions import sppasIndexError          # 0200
+from .exceptions import sppasValueError          # 0300
+from .exceptions import sppasKeyError            # 0400
+from .exceptions import sppasInstallationError    # 0510
+from .exceptions import sppasPermissionError      # 0513
+from .exceptions import sppasEnableFeatureError   # 0520
+from .exceptions import sppasPackageFeatureError  # 0530
+from .exceptions import sppasPackageUpdateFeatureError  # 0540
+from .exceptions import sppasIOError             # 0600
+
+from .exceptions import NegativeValueError       # 0310
+from .exceptions import RangeBoundsException     # 0320
+from .exceptions import IntervalRangeException   # 0330
+from .exceptions import IndexRangeException      # 0340
+
+from .exceptions import IOExtensionError         # 0610
+from .exceptions import NoDirectoryError         # 0620
+from .exceptions import sppasOpenError           # 0650
+from .exceptions import sppasWriteError          # 0660
+from .exceptions import sppasExtensionReadError  # 0670
+from .exceptions import sppasExtensionWriteError  # 0680
 
 # ---------------------------------------------------------------------------
 # Fix the global configuration and settings
@@ -121,6 +148,27 @@ __all__ = (
     "annots",
     "info",
     "error",
-    "msg"
+    "msg",
+    "sppasError",
+    "sppasTypeError",
+    "sppasIndexError",
+    "sppasValueError",
+    "sppasKeyError",
+    "sppasInstallationError",
+    "sppasPermissionError",
+    "sppasEnableFeatureError",
+    "sppasPackageFeatureError",
+    "sppasPackageUpdateFeatureError",
+    "sppasIOError",
+    "NegativeValueError",
+    "RangeBoundsException",
+    "IntervalRangeException",
+    "IndexRangeException",
+    "IOExtensionError",
+    "NoDirectoryError",
+    "sppasOpenError",
+    "sppasWriteError",
+    "sppasExtensionReadError",
+    "sppasExtensionWriteError"
 )
 

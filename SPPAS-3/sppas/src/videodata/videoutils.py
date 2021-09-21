@@ -51,11 +51,12 @@ from .video import sppasVideoReader
 # ---------------------------------------------------------------------------
 
 
-def video_to_images(video, folder, pattern="img_"):
+def video_to_images(video, folder, pattern="img_", process_image=True):
     """Create a folder of images from a video.
 
     :param video: (str) Input video filename.
     :param folder: (str) D=Output directory with images.
+    :param process_image: (bool) Apply default options on images (i.e. rotate if in metadata)
 
     """
     bv = sppasVideoReader()
@@ -65,14 +66,14 @@ def video_to_images(video, folder, pattern="img_"):
     ff = str("{:0%dd}" % ndigits)
 
     frame_idx = 0
-    frame = bv.read_frame(process_image=False)
+    frame = bv.read_frame(process_image)
     while frame is not None:
         # write the image in the folder
         img_name = os.path.join(folder, pattern + ff.format(frame_idx) + ".png")
         frame.write(img_name)
 
         frame_idx += 1
-        frame = bv.read_frame(process_image=False)
+        frame = bv.read_frame(process_image)
         if frame_idx % 1000 == 0:
             logging.info(" ... {:d} images in folder".format(frame_idx))
 

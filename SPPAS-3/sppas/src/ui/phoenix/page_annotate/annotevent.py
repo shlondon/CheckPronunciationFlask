@@ -33,8 +33,83 @@
 
 import wx.lib.newevent
 
-# ---------------------------------------------------------------------------
-# Event to be used when the data have changed.
+EVT_ANNOT_PAGE_CHANGE = wx.PyEventBinder(wx.NewEventType(), 1)
 
-PageChangeEvent, EVT_PAGE_CHANGE = wx.lib.newevent.NewEvent()
-PageChangeCommandEvent, EVT_PAGE_CHANGE_COMMAND = wx.lib.newevent.NewCommandEvent()
+
+class sppasAnnotBookPageChangeEvent(wx.PyCommandEvent):
+    """Class for an event sent when an action requires to change the page.
+
+    The binder of this event is EVT_PAGE_CHANGE.
+
+    """
+
+    def __init__(self, event_id):
+        """Default class constructor.
+
+        :param event_id: the event identifier.
+
+        """
+        super(sppasAnnotBookPageChangeEvent, self).__init__(EVT_ANNOT_PAGE_CHANGE.typeId, event_id)
+        self.__to_page = ""
+        self.__fct = ""
+        self.__args = None
+
+    # -----------------------------------------------------------------------
+
+    def SetToPage(self, value):
+        """Set the name of the destination page of the book.
+
+        :param value: (str) Name of a page.
+
+        """
+        self.__to_page = str(value)
+
+    # -----------------------------------------------------------------------
+
+    def GetToPage(self):
+        """Return the name of the destination page of the book.
+
+        :returns: (str)
+
+        """
+        return self.__to_page
+
+    # -----------------------------------------------------------------------
+
+    def SetFctName(self, name):
+        """Name of a function the destination page has to launch.
+
+        :param name: (str) Name of a function of the destination page.
+
+        """
+        self.__fct = str(name)
+
+    # -----------------------------------------------------------------------
+
+    def GetFctName(self):
+        """Return the name of the function the destination page will run.
+
+        :returns: (str) Empty string if no function
+
+        """
+        return self.__fct
+
+    # -----------------------------------------------------------------------
+
+    def SetFctArgs(self, args):
+        """Arguments for the function.
+
+        :param args: ()
+
+        """
+        self.__args = args
+
+    # -----------------------------------------------------------------------
+
+    def GetFctArgs(self):
+        """Return the arguments for the function the destination page will run.
+
+        :returns: () None if no arguments
+
+        """
+        return self.__args

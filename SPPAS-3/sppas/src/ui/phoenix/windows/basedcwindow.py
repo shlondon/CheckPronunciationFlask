@@ -322,8 +322,8 @@ class sppasDCWindow(wx.Window):
         :return: (wx.Colour)
 
         """
-        if delta < 10:
-            delta = 10
+        if delta < -90:
+            delta = -90
         if delta > 90:
             delta = 90
 
@@ -810,6 +810,13 @@ class sppasDCWindow(wx.Window):
         """Return the height of the in-use font."""
         font = self.GetFont()
         return int(float(font.GetPixelSize()[1]))
+
+    # -----------------------------------------------------------------------
+
+    def get_font_width(self):
+        """Return the width of the in-use font."""
+        font = self.GetFont()
+        return int(float(font.GetPixelSize()[0]))
 
     # -----------------------------------------------------------------------
 

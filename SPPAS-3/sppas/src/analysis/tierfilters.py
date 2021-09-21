@@ -40,11 +40,9 @@
 
 import logging
 
-from sppas.src.exceptions import sppasKeyError
-
+from sppas.src.config import sppasKeyError
 from sppas.src.utils import u
 from sppas.src.structs import sppasBaseFilters
-
 from sppas.src.structs import sppasListCompare
 from sppas.src.anndata import sppasTier
 from sppas.src.anndata.anndataexc import AnnDataTypeError

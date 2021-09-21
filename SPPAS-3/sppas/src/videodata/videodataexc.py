@@ -38,7 +38,7 @@
 
 """
 
-from sppas.src.exceptions import sppasIOError
+from sppas.src.config import sppasIOError
 from sppas.src.config import error
 
 # -----------------------------------------------------------------------

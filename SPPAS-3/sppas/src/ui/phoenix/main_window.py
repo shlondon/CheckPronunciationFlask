@@ -41,7 +41,7 @@
 
 import wx
 
-from sppas.src.config import sg, sppasAppConfig
+from sppas.src.config import sppasAppConfig
 from sppas.src.config import msg
 from sppas.src.utils import u
 
@@ -170,7 +170,7 @@ class sppasMainWindow(sppasDialog):
         min_width = sppasPanel.fix_size(620)
         self.SetMinSize(wx.Size(min_width, 480))
         self.SetSize(wx.GetApp().settings.frame_size)
-        self.SetName('{:s}'.format(sg.__name__))
+        self.SetName("frm_main")
 
         try:
             delta = wx.GetApp().settings.fade_in_delta
@@ -352,6 +352,7 @@ class sppasMainWindow(sppasDialog):
 
         elif key_code == 81 and event.ControlDown() and wx.Platform != "__WXMSW__":
             # CMD+q on MacOS / Ctrl+q on Linux to force exit
+            event.Skip()
             self.exit()
 
         elif key_code == 70 and event.ControlDown():
@@ -392,6 +393,7 @@ class sppasMainWindow(sppasDialog):
 
         """
         response = YesNoQuestion(MSG_CONFIRM)
+        event.Skip()
         if response == wx.ID_YES:
             self.exit()
 
@@ -415,6 +417,7 @@ class sppasMainWindow(sppasDialog):
         # Stop redirecting logging to this application log window
         self.log_window.redirect_logging(False)
 
+        # Destroy after decreasing transparency of the frame
         try:
             delta = wx.GetApp().settings.fade_out_delta
         except AttributeError:

@@ -40,8 +40,8 @@ import os
 import platform
 
 from sppas.src.config import Process
+from sppas.src.config import IOExtensionError
 from sppas.src.structs import sppasOption
-from sppas.src.exceptions import IOExtensionError
 
 from .pluginsexc import PluginConfigFileError
 from .pluginsexc import CommandExecError

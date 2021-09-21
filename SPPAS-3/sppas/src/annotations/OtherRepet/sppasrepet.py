@@ -56,6 +56,7 @@ from sppas.src.anndata.aio.aioutils import fill_gaps
 from ..annotationsexc import AnnotationOptionError
 from ..searchtier import sppasFindTier
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 from ..SelfRepet.datastructs import DataSpeaker
 from ..SelfRepet.sppasbaserepet import sppasBaseRepet
 
@@ -114,7 +115,7 @@ class sppasOtherRepet(sppasBaseRepet):
             elif "allechos" == key:
                 self.set_all_echos_tier(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -319,46 +320,74 @@ class sppasOtherRepet(sppasBaseRepet):
     # Run
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return 2 tiers with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier_src = None
+        for filename in input_files[0]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_src is None:
+                tier_src = sppasFindTier.aligned_tokens(trs_input)
+        if tier_src is None:
+            logging.error("A source tier with time-aligned tokens was expected but not found.")
+            raise NoTierInputError
+
+        tier_echo = None
+        for filename in input_files[1]:
+            parser = sppasTrsRW(filename)
+            trs_input = parser.read()
+            if tier_echo is None:
+                tier_echo = sppasFindTier.aligned_tokens(trs_input)
+                if tier_echo is not None:
+                    min_time_point = trs_input.get_min_loc()
+                    max_time_point = trs_input.get_max_loc()
+                    tier_echo = fill_gaps(tier_echo, min_time_point, max_time_point)
+
+        if tier_echo is None:
+            logging.error("An echo tier with time-aligned tokens was expected but not found.")
+            raise NoTierInputError
+
+        return tier_src, tier_echo
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
         Input file is a tuple with 2 files: the main speaker and the echoing
         speaker.
 
-        :param input_file: (list of str) (time-aligned token, time-aligned token)
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) File(s) with time-aligned token
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
-        # Get the tier to be used -- source
-        parser = sppasTrsRW(input_file[0])
-        trs_input1 = parser.read()
-        tier_tokens = sppasFindTier.aligned_tokens(trs_input1)
+        tier_tokens_src, tier_tokens_echo = self.get_inputs(input_files)
+
         # Check if silences are indicated
         s = 0
-        for ann in tier_tokens:
+        for ann in tier_tokens_src:
             if ann.is_labelled():
                 if ann.get_best_tag().is_silence() is True:
                     s += 1
-        if (float(s) / float(len(tier_tokens))) < 0.05:
-            logging.error("Error. The tier with tokens should contain silences but it doesn't."
+        if (float(s) / float(len(tier_tokens_src))) < 0.05:
+            logging.error("Error. The tier with tokens (source) should contain silences but it doesn't."
                           "To detect the repetitions, the Inter Pausal Units are required to"
                           "fix the span. Without silences, there's no way to know where the"
                           "IPUs are...")
-            raise ValueError("Invalid input tier {:s}: no silences.".format(tier_tokens.get_name()))
-        tier_input1 = self.make_word_strain(tier_tokens)
+            raise ValueError("Invalid source input tier {:s}: no silences.".format(tier_tokens_src.get_name()))
+        tier_input1 = self.make_word_strain(tier_tokens_src)
         tier_input1.set_name(tier_input1.get_name() + "-source")
 
         # Get the tier to be used -- echo
-        parser = sppasTrsRW(input_file[1])
-        trs_input2 = parser.read()
-        tier_tokens = sppasFindTier.aligned_tokens(trs_input2)
         s = 0
-        min_time_point = trs_input2.get_min_loc()
-        max_time_point = trs_input2.get_max_loc()
-        tier_tokens = fill_gaps(tier_tokens, min_time_point, max_time_point)
-        for ann in tier_tokens:
+        for ann in tier_tokens_echo:
             if ann.is_labelled():
                 if ann.get_best_tag().is_silence() is True:
                     s += 1
@@ -367,20 +396,18 @@ class sppasOtherRepet(sppasBaseRepet):
                     ann.set_labels([sppasLabel(sppasTag('#'))])
             else:
                 ann.set_labels([sppasLabel(sppasTag('#'))])
-        if (float(s) / float(len(tier_tokens))) < 0.05:
-            logging.error("Error. The tier with tokens should contain silences but it doesn't. "
+        if (float(s) / float(len(tier_tokens_echo))) < 0.05:
+            logging.error("Error. The tier with tokens (echo) should contain silences but it doesn't. "
                           "To detect the repetitions, the Inter Pausal Units are required to "
                           "fix the span. Without silences, there's no way to know where the "
                           "IPUs are...")
-            raise ValueError("Invalid input tier {:s}: no silences.".format(tier_tokens.get_name()))
-        tier_input2 = self.make_word_strain(tier_tokens)
+            raise ValueError("Invalid echo input tier {:s}: no silences.".format(tier_tokens_echo.get_name()))
+        tier_input2 = self.make_word_strain(tier_tokens_echo)
         tier_input2.set_name(tier_input2.get_name() + "-echo")
 
         # Repetition Automatic Detection
         trs_output = self.other_detection(tier_input1, tier_input2)
-        self.transfer_metadata(trs_input1, trs_output)
-        trs_output.set_meta('other_repetition_result_of_source', input_file[0])
-        trs_output.set_meta('other_repetition_result_of_echo', input_file[1])
+        trs_output.set_meta('annotation_result_of', input_files[0][0])
         if len(self._word_strain) > 0:
             trs_output.append(tier_input1)
         if self._options['stopwords'] is True:
@@ -403,10 +430,10 @@ class sppasOtherRepet(sppasBaseRepet):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-orepet")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-palign")
+        return [self._options.get("inputpattern", "-palign")]

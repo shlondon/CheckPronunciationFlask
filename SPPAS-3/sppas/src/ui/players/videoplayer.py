@@ -162,7 +162,7 @@ class sppasSimpleVideoPlayer(sppasBasePlayer):
         while self._media.is_opened():
             if self._ms == PlayerState().playing:
                 # read the next frame from the file
-                frame = self._media.read_frame(process_image=False)
+                frame = self._media.read_frame()
                 frm += 1
                 cur_offset = start_offset + frm
 

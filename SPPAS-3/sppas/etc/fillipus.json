@@ -1,7 +1,7 @@
 {
   "id": "fillipus",
   "name": "Fill in IPUs",
-  "descr": "Searches for Inter-Pausal Units and fills in with a transcription. Requires an audio file and a .txt file with the transcription. Produces an annotated file with the IPUs filled with the transcription.",
+  "descr": "Searches for Inter-Pausal Units and fills in with a given transcription. Requires an audio file and a .txt file with the transcription. Produces an annotated file with the IPUs filled with the transcription.",
   "required": "",
   "api": "sppasFillIPUs",
 

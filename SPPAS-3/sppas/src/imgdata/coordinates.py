@@ -39,8 +39,9 @@
 
 """
 
-from sppas.src.exceptions import sppasTypeError
-from sppas.src.exceptions import IntervalRangeException
+from sppas.src.config import sppasTypeError
+from sppas.src.config import IntervalRangeException
+
 from .imgdataexc import ImageEastingError, ImageNorthingError
 from .imgdataexc import ImageWidthError, ImageHeightError, ImageBoundError
 

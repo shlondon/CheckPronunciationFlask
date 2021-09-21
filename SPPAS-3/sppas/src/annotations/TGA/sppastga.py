@@ -1,38 +1,46 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.TGA.sppastga.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of TGA automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.TGA.sppastga.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
+
+import logging
+import os
 
 from sppas.src.config import symbols
 from sppas.src.utils.makeunicode import sppasUnicode
@@ -47,6 +55,7 @@ from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 
 from .timegroupanalysis import TimeGroupAnalysis
 
@@ -54,13 +63,7 @@ from .timegroupanalysis import TimeGroupAnalysis
 
 
 class sppasTGA(sppasBaseAnnotation):
-    """Estimate TGA on a tier.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2018  Brigitte Bigi
+    """Estimate TGA on a tier -- from D. Gibbon.
 
     Create time groups then map them into a dictionary where:
 
@@ -123,7 +126,7 @@ class sppasTGA(sppasBaseAnnotation):
             elif "tg_prefix_label" == key:
                 self.set_tg_prefix_label(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -418,24 +421,46 @@ class sppasTGA(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        annot_ext = self.get_input_extensions()
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+            if tier is None and fe in annot_ext[0]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = sppasFindTier.aligned_syllables(trs_input)
+                if tier is not None:
+                    return tier
+
+        # Check input tier
+        logging.error("A tier with time-aligned syllables was not found.")
+        raise NoTierInputError
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) syllabification
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Syllabification
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to syllabify
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier_input = sppasFindTier.aligned_syllables(trs_input)
+        tier_input = self.get_inputs(input_files)
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('tga_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0])
 
         # Estimate TGA on the tier
         trs_output = self.convert(tier_input)
@@ -454,10 +479,10 @@ class sppasTGA(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-tga")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-syll")
+        return [self._options.get("inputpattern", "-syll")]

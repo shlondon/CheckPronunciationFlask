@@ -1,37 +1,44 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.Intsint.sppasintsint.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of the INTSINT automatic annotation.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        This banner notice must not be removed.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        ---------------------------------------------------------------------
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-    src.annotations.Intsint.sppasintsint.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
+
+import logging
 
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
@@ -42,8 +49,10 @@ from sppas.src.anndata import sppasTag
 from sppas.src.anndata.anndataexc import AnnDataTypeError
 from sppas.src.anndata.anndataexc import AnnDataEqError
 
+from ..annotationsexc import NoTierInputError
 from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
+from ..autils import SppasFiles
 
 from .intsint import Intsint
 
@@ -53,19 +62,10 @@ from .intsint import Intsint
 class sppasIntsint(sppasBaseAnnotation):
     """SPPAS integration of the INTSINT automatic annotation.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
-
     """
 
     def __init__(self, log=None):
-        """Create a new sppasIntsint instance.
-
-        Log is used for a better communication of the annotation process and its
-        results. If None, logs are redirected to the default logging system.
+        """Create a new instance.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -81,16 +81,12 @@ class sppasIntsint(sppasBaseAnnotation):
     def tier_to_anchors(momel_tier):
         """Initialize INTSINT attributes from a Tier with anchors.
 
-        :param momel_tier: (sppasTier)
+        :param momel_tier: (sppasTier) A PointTier with float values.
         :returns: List of tuples (time, f0 value)
 
         """
-        if momel_tier.is_point() is False:
-            raise AnnDataTypeError(momel_tier.get_name(), 'PointTier')
-
         targets = list()
         for ann in momel_tier:
-
             # Get the f0 value
             tag = ann.get_best_tag(label_idx=0)
             try:
@@ -123,8 +119,7 @@ class sppasIntsint(sppasBaseAnnotation):
 
         """
         if len(tones) != len(anchors_tier):
-            raise AnnDataEqError("tones:"+str(len(tones)),
-                                 "anchors:"+str(len(anchors_tier)))
+            raise AnnDataEqError("tones:"+str(len(tones)), "anchors:"+str(len(anchors_tier)))
 
         tier = sppasTier("INTSINT")
         for tone, anchor_ann in zip(tones, anchors_tier):
@@ -138,22 +133,53 @@ class sppasIntsint(sppasBaseAnnotation):
         return tier
 
     # -----------------------------------------------------------------------
+
+    def get_input_tier(self, input_files):
+        """Return the tier with Momel anchors.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier) Tier of type Point
+
+        """
+        tier = None
+        for filename in input_files:
+            parser = sppasTrsRW(filename)
+            print(filename)
+            trs_input = parser.read()
+            for t in trs_input:
+                print(t.get_name())
+            if tier is None:
+                tier = sppasFindTier.pitch_anchors(trs_input)
+            if tier is None:
+                tier = sppasFindTier.pitch(trs_input)
+            if tier is not None:
+                break
+
+        # Check input tier
+        if tier is None:
+            logging.error("Tier with Momel anchors not found.")
+            raise NoTierInputError
+        if tier.is_point() is False:
+            logging.error("The tier with Momel anchors should be of type: Point.")
+            raise AnnDataTypeError(tier.get_name(), 'PointTier')
+
+        return tier
+
+    # -----------------------------------------------------------------------
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) momel anchors
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) momel anchors
         :param output: (str) the output file name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be annotated.
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier_input = sppasFindTier.pitch_anchors(trs_input)
+        tier_input = self.get_input_tier(input_files)
 
         # Annotate the tier
         targets = sppasIntsint.tier_to_anchors(tier_input)
@@ -162,9 +188,7 @@ class sppasIntsint(sppasBaseAnnotation):
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('intsint_result_of', input_file[0])
-        self.transfer_metadata(trs_input, trs_output)
-
+        trs_output.set_meta('annotation_result_of', input_files[0])
         trs_output.append(tier_intsint)
 
         # Save in a file
@@ -178,10 +202,20 @@ class sppasIntsint(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-intsint")
 
-    def get_input_pattern(self):
-        """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-momel")
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def get_input_extensions():
+        """Extensions that the annotation expects for its input filename.
+
+        INTSINT requires momel anchors which can either be stored in
+        a TextGrid file or in a PitchTier file.
+
+        :return: (list of list)
+
+        """
+        return [SppasFiles.get_informat_extensions("ANNOT")]

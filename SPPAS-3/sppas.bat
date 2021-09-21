@@ -65,10 +65,12 @@ if %ERRORLEVEL% EQU 0 (
         color 04
 
         if exist C:\Python27\pythonw.exe (
+            echo [ WARNING ] Python needs to be updated. This is the last version of SPPAS that is supporting this old version. The next version of SPPAS will require version 3.8+.
             start "" C:\Python27\pythonw.exe .\sppas\bin\sppasgui.py
             exit
         ) else (
             if exist C:\Python27\python.exe (
+                echo [ WARNING ] Python needs to be updated. This is the last version of SPPAS that is supporting this old version. The next version of SPPAS will require version 3.8+.
                 start "" C:\Python27\python.exe .\sppas\bin\sppasgui.py
                 exit
             ) else (
@@ -81,6 +83,7 @@ if %ERRORLEVEL% EQU 0 (
                         start "" python.exe -m sppas
                         exit
                     ) else (
+                        echo [ WARNING ] Python needs to be updated. This is the last version of SPPAS that is supporting this old version. The next version of SPPAS will require version 3.8+.
                         start "" python.exe .\sppas\bin\sppasgui.py
                         exit
                     )

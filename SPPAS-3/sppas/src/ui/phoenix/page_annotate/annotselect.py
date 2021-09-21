@@ -54,7 +54,7 @@ from ..windows import sppasTextCtrl
 from ..windows import BitmapTextButton, TextButton, BitmapButton
 from ..windows import sppasComboBox
 
-from .annotevent import PageChangeEvent
+from .annotevent import sppasAnnotBookPageChangeEvent
 
 # ---------------------------------------------------------------------------
 
@@ -73,12 +73,6 @@ MSG_CONFIG = _("Configure")
 
 class sppasAnnotationsPanel(sppasPanel):
     """Create a panel to fix properties of all the annotations.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     """
 
@@ -189,14 +183,15 @@ class sppasAnnotationsPanel(sppasPanel):
     # Events management
     # -----------------------------------------------------------------------
 
-    def notify(self):
-        """Send the EVT_PAGE_CHANGE to the parent."""
+    def notify(self, destination, fct_name="", fct_args=None):
+        """Send the EVT_ANNOT_PAGE_CHANGE to the event handler."""
         if self.GetParent() is not None:
-            evt = PageChangeEvent(from_page=self.GetName(),
-                                  to_page="page_annot_actions",
-                                  fct="")
+            evt = sppasAnnotBookPageChangeEvent(self.GetId())
             evt.SetEventObject(self)
-            wx.PostEvent(self.GetParent(), evt)
+            evt.SetToPage(destination)
+            evt.SetFctName(fct_name)
+            evt.SetFctArgs(fct_args)
+            self.GetEventHandler().ProcessEvent(evt)
 
     # -----------------------------------------------------------------------
 
@@ -222,7 +217,7 @@ class sppasAnnotationsPanel(sppasPanel):
         event_name = event_obj.GetName()
 
         if event_name == "arrow_up":
-            self.notify()
+            self.notify(destination="page_annot_actions")
 
     # -----------------------------------------------------------------------
 
@@ -260,12 +255,6 @@ class sppasAnnotationsPanel(sppasPanel):
 class sppasEnableAnnotation(sppasPanel):
     """Create a panel to enable and select language of an annotation.
 
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
-
     """
 
     def __init__(self, parent, annparam):
@@ -299,10 +288,10 @@ class sppasEnableAnnotation(sppasPanel):
         pr = self.__create_references_panel()
 
         sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(es, 0, wx.ALIGN_CENTRE | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
+        sizer.Add(es, 0, wx.ALIGN_LEFT | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
         sizer.Add(ls, 0, wx.ALIGN_CENTRE | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
-        sizer.Add(ds, 1, wx.EXPAND | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
         sizer.Add(pr, 0, wx.EXPAND | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
+        sizer.Add(ds, 1, wx.EXPAND | wx.RIGHT | wx.LEFT, sppasPanel.fix_size(8))
 
         self.SetSizer(sizer)
         self.SetMinSize(wx.Size(-1, sppasPanel.fix_size(96)))
@@ -311,25 +300,26 @@ class sppasEnableAnnotation(sppasPanel):
 
     def __create_enable_panel(self):
         panel = sppasPanel(self, name="enable_panel")
-        sizer = wx.BoxSizer(wx.VERTICAL)
         w = sppasPanel.fix_size(196)
-        h = sppasPanel.fix_size(48)
+        h = sppasPanel.fix_size(56)
 
-        btn_enable = BitmapTextButton(
-            panel, label=self.__annparam.get_name(), name="on-off-off")
-        btn_enable.LabelPosition = wx.RIGHT
+        btn_enable = BitmapTextButton(panel, label=self.__annparam.get_name(), name="on-off-off")
+        btn_enable.SetLabelPosition(wx.RIGHT)
+        btn_enable.SetAlign(wx.ALIGN_LEFT)
         btn_enable.SetSpacing(sppasPanel.fix_size(12))
         btn_enable.SetFocusWidth(0)
         btn_enable.SetMinSize(wx.Size(w-2, h-2))
-        btn_enable.SetMaxSize(wx.Size(w-2, h))
+        # btn_enable.SetMaxSize(wx.Size(w-2, h))
 
-        btn_configure = TextButton(
-            panel, label=MSG_CONFIG + "...", name="configure")
+        btn_configure = TextButton(panel, label=MSG_CONFIG + "...", name="configure")
         btn_configure.SetBorderWidth(0)
+        btn_configure.SetFocusWidth(1)
+        btn_configure.SetAlign(wx.ALIGN_LEFT)
         btn_configure.SetForegroundColour(wx.Colour(80, 100, 220))
-        btn_configure.SetMinSize(wx.Size(w-2, h-2))
+        btn_configure.SetMinSize(wx.Size(w-2, h // 2))
 
-        sizer.Add(btn_enable, 1, wx.EXPAND)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(btn_enable, 2, wx.EXPAND)
         sizer.Add(btn_configure, 1, wx.EXPAND)
         panel.SetSizer(sizer)
         return panel

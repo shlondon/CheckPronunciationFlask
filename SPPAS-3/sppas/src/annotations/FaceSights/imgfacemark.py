@@ -60,10 +60,9 @@ import logging
 import cv2
 import os
 import numpy
-import math
 
-from sppas.src.exceptions import sppasIOError, IOExtensionError
-from sppas.src.exceptions import sppasError, sppasTypeError
+from sppas.src.config import sppasIOError, IOExtensionError
+from sppas.src.config import sppasError, sppasTypeError
 from sppas.src.imgdata import sppasImage
 
 from .sights import Sights

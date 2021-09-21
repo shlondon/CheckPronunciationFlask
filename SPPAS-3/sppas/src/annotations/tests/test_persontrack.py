@@ -37,12 +37,12 @@ import os
 import unittest
 
 from sppas.src.config import paths
-from sppas.src.exceptions import sppasError
+from sppas.src.config import sppasError
 from sppas.src.annotations.param import sppasParam
 from sppas.src.videodata import sppasVideoReaderBuffer
 from sppas.src.imgdata import sppasCoordsImageWriter, sppasImage
 
-from ..FaceClustering.videotrackwriter import sppasCoordsVideoWriter
+from sppas.src.videodata import sppasCoordsVideoWriter
 from ..FaceClustering.facebuffer import sppasFacesVideoBuffer
 from ..FaceClustering.sppasfaceid import sppasFaceIdentifier
 from ..FaceClustering.facetrack import FaceRecognition

@@ -46,12 +46,12 @@ import logging
 import numpy as np
 import cv2
 
-from sppas.src.imgdata import sppasImage
-from sppas.src.exceptions import NegativeValueError
-from sppas.src.exceptions import IntervalRangeException
-from sppas.src.exceptions import RangeBoundsException
-from sppas.src.exceptions import sppasKeyError
+from sppas.src.config import NegativeValueError
+from sppas.src.config import IntervalRangeException
+from sppas.src.config import RangeBoundsException
+from sppas.src.config import sppasKeyError
 from sppas.src.utils.datatype import bidict
+from sppas.src.imgdata import sppasImage
 
 from .videodataexc import VideoOpenError
 from .videodataexc import VideoBrowseError
@@ -63,8 +63,6 @@ from .videodataexc import VideoLockError
 
 class sppasVideoReader(object):
     """Class to wrap a VideoCapture with OpenCV.
-
-    :authors: Florian Hocquet, Brigitte Bigi
 
     This class is embedding a VideoCapture() object and define some
     getters and setters to manage such video easily.
@@ -95,10 +93,61 @@ class sppasVideoReader(object):
         self.__video = cv2.VideoCapture()
         self.__lock = False
 
+        # Options to modify the image read from the video
+        self.__rotate = 0.
+        self.__gray = False
+
+    # -----------------------------------------------------------------------
+    # Manage options
+    # -----------------------------------------------------------------------
+
+    def set_rotate(self, angle=0.):
+        """Force to rotate the read image of given angle.
+
+        :param angle (int) Value in range [-360,360]
+
+        """
+        angle = float(angle)
+        if int(angle) == 360 or int(angle) == -360:
+            self.__rotate = 0
+        elif -360 < int(angle) < 360:
+            self.__rotate = angle
+        else:
+            raise IntervalRangeException(angle, -360, 360)
+
+    # -----------------------------------------------------------------------
+
+    def get_rotate(self):
+        """Return the angle to rotate read images."""
+        return self.__rotate
+
+    # -----------------------------------------------------------------------
+
+    def set_gray(self, value=False):
+        """Turn the read image into gray color.
+
+        :param value: (bool) make the image gray
+
+        """
+        value = bool(value)
+        self.__gray = value
+
+    # -----------------------------------------------------------------------
+
+    def get_gray(self):
+        """Return True if read images should be turned gray."""
+        return self.__gray
+
+    # -----------------------------------------------------------------------
+    # Manage video stream
     # -----------------------------------------------------------------------
 
     def open(self, video):
         """Initialize a VideoCapture.
+
+        The angle value to rotate the image is overridden considering OpenCV
+        VideoCapture properties extracted from the video file's metadata
+        (applicable for FFmpeg back-end only).
 
         :param video: (name of video file, image sequence, url or video stream,
         GStreamer pipeline, IP camera) The video to browse.
@@ -106,20 +155,11 @@ class sppasVideoReader(object):
         """
         if self.__lock is True:
             logging.error("The video can't be opened because another video "
-                          "stream is not already opened.")
+                          "stream is already opened.")
             raise VideoLockError
 
         # Create an OpenCV VideoCapture object and open the video
-        try:
-            self.__video.open(video)
-            if self.__video.isOpened() is False:
-                raise Exception("The video was not opened by OpenCV Library "
-                                "for an unknown reason.")
-            self.__lock = True
-        except Exception as e:
-            self.__lock = False
-            logging.error("Video {} can't be opened: {}".format(video, str(e)))
-            raise VideoOpenError(video)
+        self.__video = self.__open_video(video)
 
         # Test the video under this platform...
         success = True
@@ -136,6 +176,32 @@ class sppasVideoReader(object):
 
         # Set the beginning of the video to the frame 0
         self.__video.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    # -----------------------------------------------------------------------
+
+    def __open_video(self, device):
+        """Return a VideoCapture object or raise an Exception."""
+        message = ""
+        self.__lock = False
+
+        try:
+            # Priority is given to Ffmpeg backends because it is able
+            # to read more metadata, including rotate.
+            video = cv2.VideoCapture(device, cv2.CAP_FFMPEG)
+        except Exception as e:
+            try:
+                video = cv2.VideoCapture(device, cv2.CAP_ANY)
+            except Exception as e:
+                video = cv2.VideoCapture()
+                message = str(e)
+
+        if video.isOpened() is True:
+            self.__lock = True
+            return video
+
+        logging.error("Video {} can't be opened. CV2 library message: {}"
+                      "".format(device, message))
+        raise VideoOpenError(device)
 
     # -----------------------------------------------------------------------
 
@@ -167,7 +233,7 @@ class sppasVideoReader(object):
         if process_image is False:
             return sppasImage(input_array=img)
 
-        return sppasVideoReader._preprocess_image(img)
+        return self._preprocess_image(img)
 
     # -----------------------------------------------------------------------
 
@@ -178,7 +244,7 @@ class sppasVideoReader(object):
 
         :param from_pos: (int) frameID value to start reading. -1 means the current position.
         :param to_pos: (int) frameID value to stop reading. -1 means the last frame of the video.
-        :param process_image: (bool) convert the image to reduce size, uint8, etc
+        :param process_image: (bool) convert the image to sppasImage and apply options
         :returns: None, an image or a list of images(numpy.ndarray).
 
         """
@@ -312,16 +378,26 @@ class sppasVideoReader(object):
     # Private
     # -----------------------------------------------------------------------
 
-    @staticmethod
-    def _preprocess_image(image):
-        """Change size and array size of the image.
+    def _preprocess_image(self, image):
+        """Process the image to apply options.
 
         :param image: (np.array)
         :return: (sppasImage)
 
         """
-        image = np.array(image, dtype=np.uint8)  # Unsigned integer (0 to 255)
-        return sppasImage(input_array=image)
+        # Reduce numpy array to unsigned 8 bits integer,
+        # i.e. RGBA values are ranging 0-255
+        image = np.array(image, dtype=np.uint8)
+        # Turn numpy array into a sppasImage
+        image = sppasImage(input_array=image)
+        # Make the image gray
+        if self.__gray is True:
+            image = image.igray()
+        # Apply given angle
+        if int(self.__rotate) != 0:
+            image = image.irotate(self.__rotate)
+
+        return image
         # image = np.expand_dims(image, -1)
         # image = cv2.resize(image, (width, height))
         # image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -331,8 +407,6 @@ class sppasVideoReader(object):
 
 class sppasVideoWriter(object):
     """Class to write a video on disk, image by image.
-
-    :author: Brigitte Bigi
 
     This class is embedding a VideoWriter() object and define some
     getters and setters to manage such video easily.

@@ -17,19 +17,19 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern"
+      "text": "Pattern of the input file to estimate lexical metrics on."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-lexm",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with lexical metrics."
     },
     {
       "id": "tiername",
       "type": "str",
       "value": "TokensAlign",
-      "text": "Input tier to estimate tags"
+      "text": "Input tier to estimate tags."
     },
     {
       "id": "alt",

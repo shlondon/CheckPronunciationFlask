@@ -37,7 +37,8 @@
 """
 
 import collections
-from sppas.src.exceptions import sppasTypeError
+
+from sppas.src.config import sppasTypeError
 
 # ---------------------------------------------------------------------------
 

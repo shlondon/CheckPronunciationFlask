@@ -17,13 +17,18 @@
       "id": "inputpattern",
       "type": "str",
       "value": "-momel",
-      "text": "Input file pattern (momel anchors)"
+      "text": "Input file pattern with Momel anchors."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-intsint",
-      "text": "Output file pattern"
+      "text": "Output file pattern with INTSINT alphabet."
     }
-  ]
+  ],
+
+  "refs": {
+    "hirst2011": "https://www.researchgate.net/profile/Daniel-Hirst/publication/228409777_The_analysis_by_synthesis_of_speech_melody_from_data_to_models/links/004635173b4dbe2dbf000000/The-analysis-by-synthesis-of-speech-melody-from-data-to-models.pdf"
+  }
+
 }

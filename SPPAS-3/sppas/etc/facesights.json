@@ -28,22 +28,22 @@
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
       "type": "str",
       "value": "",
-      "text": "Input file pattern of the image, or video file"
+      "text": "Input pattern of the image, or video file."
     },
     {
-      "id": "inputoptpattern",
+      "id": "inputpattern2",
       "type": "str",
       "value": "-ident",
-      "text": "Input pattern of the CSV file with detected faces or identified person faces"
+      "text": "Input pattern of the CSV file with detected faces or identified person faces."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-sights",
-      "text": "Output file pattern"
+      "text": "Output file pattern with the sights."
     },
     {
       "id": "csv",

@@ -1,38 +1,40 @@
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.searchtier.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  Search for tier with various names.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Copyright (C) 2011-2021  Brigitte Bigi
-        Laboratoire Parole et Langage, Aix-en-Provence, France
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        Use of this software is governed by the GNU Public License, version 3.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        This banner notice must not be removed.
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-        ---------------------------------------------------------------------
+    This banner notice must not be removed.
 
-    src.annotations.searchtier.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    -------------------------------------------------------------------------
 
 """
 
@@ -44,9 +46,6 @@ from .annotationsexc import NoTierInputError
 class sppasFindTier:
     """Search for tiers in a sppasTranscription.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
-
     """
 
     @staticmethod
@@ -54,7 +53,7 @@ class sppasFindTier:
         """Return the tier with orthographic transcription.
 
         :param trs: (sppasTranscription)
-        :returns: (sppasTier)
+        :returns: (sppasTier or None)
 
         """
         # Search for a tier with exact name "transcription"
@@ -87,7 +86,7 @@ class sppasFindTier:
             if "ipu" in tier_name:
                 return tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -100,7 +99,7 @@ class sppasFindTier:
 
         :param trs: (sppasTranscription)
         :param pattern: (str) Priority pattern
-        :returns: (sppasTier)
+        :returns: (sppasTier or None)
 
         """
         # Search with the pattern
@@ -137,7 +136,7 @@ class sppasFindTier:
             if tok_tier is not None:
                 return tok_tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -146,7 +145,7 @@ class sppasFindTier:
         """Return the tier with phonetization.
 
         :param trs: (sppasTranscription)
-        :returns: (sppasTier)
+        :returns: (sppasTier or None)
 
         """
         # Search for a tier with exact name "phones"
@@ -170,7 +169,7 @@ class sppasFindTier:
             if "phon" in tier_name:
                 return tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -178,7 +177,7 @@ class sppasFindTier:
     def aligned_phones(trs):
         """Return the tier with time-aligned phonemes.
 
-        :param trs: (sppasTranscription)
+        :param trs: (sppasTier or None)
 
         """
         for tier in trs:
@@ -186,7 +185,7 @@ class sppasFindTier:
                     "phon" in tier.get_name().lower():
                 return tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -194,7 +193,7 @@ class sppasFindTier:
     def aligned_tokens(trs):
         """Return the tier with time-aligned tokens.
 
-        :param trs: (sppasTranscription)
+        :param trs: (sppasTier or None)
 
         """
         for tier in trs:
@@ -202,7 +201,7 @@ class sppasFindTier:
                     "token" in tier.get_name().lower():
                 return tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -210,7 +209,7 @@ class sppasFindTier:
     def aligned_syllables(trs):
         """Return the tier with time-aligned syllables.
 
-        :param trs: (sppasTranscription)
+        :param trs: (sppasTier or None)
 
         """
         for tier in trs:
@@ -226,7 +225,7 @@ class sppasFindTier:
             if "Syll" in tier.get_name():
                 return tier
 
-        raise NoTierInputError
+        return None
 
     # -----------------------------------------------------------------------
 
@@ -234,23 +233,45 @@ class sppasFindTier:
     def aligned_lemmas(trs):
         """Return the tier with time-aligned lemmas.
 
-        :param trs: (sppasTranscription)
+        :param trs: (sppasTier or None)
 
         """
         for tier in trs:
             if "lemma" in tier.get_name().lower():
                 return tier
 
-        raise NoTierInputError
+        return None
+
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def pitch(trs):
+        """Return the tier with pitch values.
+
+        :param trs: (sppasTranscription)
+        :returns: (sppasTier or None)
+
+        """
+        for tier in trs:
+            if tier.get_name() == "PitchHz":
+                return tier
+        for tier in trs:
+            if tier.get_name() == "PitchTier":
+                return tier
+        for tier in trs:
+            if "pitch" in tier.get_name().lower():
+                return tier
+
+        return None
 
     # -----------------------------------------------------------------------
 
     @staticmethod
     def pitch_anchors(trs):
-        """Return the tier with pitch anchors, like momel.
+        """Return the tier with pitch anchors, like momel result.
 
         :param trs: (sppasTranscription)
-        :returns: (sppasTier)
+        :returns: (sppasTier or None)
 
         """
         for tier in trs:
@@ -261,4 +282,4 @@ class sppasFindTier:
             if "anchors" in tier.get_name().lower():
                 return tier
 
-        raise NoTierInputError
+        return None

@@ -34,10 +34,10 @@
 """
 
 from sppas.src.config import symbols
-from sppas.src.exceptions import IndexRangeException
-
+from sppas.src.config import IndexRangeException
 from sppas.src.resources import sppasVocabulary
 from sppas.src.resources import sppasUnigram
+
 from ..annotationsexc import EmptyInputError, TooSmallInputError
 
 # -----------------------------------------------------------------------

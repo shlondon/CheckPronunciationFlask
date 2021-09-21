@@ -51,7 +51,7 @@ from ..windows import sppasStaticText
 from ..windows import sppasProgressDialog
 from ..main_events import DataChangedEvent
 
-from .annotevent import PageChangeEvent
+from .annotevent import sppasAnnotBookPageChangeEvent
 
 # -----------------------------------------------------------------------
 
@@ -71,12 +71,6 @@ OK_COLOUR = wx.Colour(25, 160, 50)        # green
 
 class sppasLogAnnotatePanel(sppasScrolledPanel):
     """Create a panel to run automatic annotations and show log.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     Notice that the log_report() filename can be different of the param()
     report filename. It happens if show() is called and param() report
@@ -98,7 +92,6 @@ class sppasLogAnnotatePanel(sppasScrolledPanel):
         self.__report = ""
         # The annotations manager
         self.__manager = sppasAnnotationsManager()
-        self.__manager.set_do_merge(True)
 
         self._create_content()
         self._setup_events()
@@ -116,9 +109,10 @@ class sppasLogAnnotatePanel(sppasScrolledPanel):
 
     # ------------------------------------------------------------------------
 
-    def run(self):
+    def run(self, do_merge):
         """Perform the automatic annotations of param on data."""
         wx.LogMessage('Perform automatic annotations')
+        self.__manager.set_do_merge(do_merge)
 
         # The procedure outcome report file.
         self.__report = self.__log_report.get_filename()
@@ -251,14 +245,17 @@ class sppasLogAnnotatePanel(sppasScrolledPanel):
     # Events management
     # -----------------------------------------------------------------------
 
-    def notify(self):
-        """Send the EVT_PAGE_CHANGE to the parent."""
+    def notify(self, destination, fct_name="", fct_args=None):
+        """Send the EVT_ANNOT_PAGE_CHANGE to the event handler."""
         if self.GetParent() is not None:
-            evt = PageChangeEvent(from_page=self.GetName(),
-                                  to_page="page_annot_actions",
-                                  fct="")
+            evt = sppasAnnotBookPageChangeEvent(self.GetId())
             evt.SetEventObject(self)
-            wx.PostEvent(self.GetParent(), evt)
+            evt.SetToPage(destination)
+            evt.SetFctName(fct_name)
+            evt.SetFctArgs(fct_args)
+            self.GetEventHandler().ProcessEvent(evt)
+
+    # -----------------------------------------------------------------------
 
     # -----------------------------------------------------------------------
 
@@ -284,7 +281,7 @@ class sppasLogAnnotatePanel(sppasScrolledPanel):
         event_name = event_obj.GetName()
 
         if event_name == "arrow_up":
-            self.notify()
+            self.notify(destination="page_annot_actions")
 
     # -----------------------------------------------------------------------
 

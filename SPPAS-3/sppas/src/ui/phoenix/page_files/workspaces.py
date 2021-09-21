@@ -44,7 +44,7 @@ import wx
 import wx.lib.newevent
 
 from sppas.src.config import msg
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasTypeError
 from sppas.src.utils import u
 from sppas.src.wkps.workspace import sppasWorkspace
 from sppas.src.wkps.sppasWkps import sppasWkps

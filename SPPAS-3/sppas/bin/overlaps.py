@@ -51,6 +51,7 @@ from sppas import sg, lgs
 
 from sppas.src.annotations import sppasOverActivity
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.wkps import sppasWkpRW
 from sppas.src.annotations import sppasAnnotationsManager
 
@@ -85,13 +86,34 @@ if __name__ == "__main__":
         action='store_true',
         help="Disable the verbosity")
 
-    parser.add_argument(
+    # Add arguments for input/output files
+    # ------------------------------------
+
+    group_wkp = parser.add_argument_group('Files (auto)')
+
+    group_wkp.add_argument(
+        "-w",
+        metavar="wkp",
+        help='Workspace.')
+
+    group_wkp.add_argument(
+        "-I",
+        action='append',
+        metavar="file",
+        help='Input file')
+
+    group_wkp.add_argument(
+        "-e",
+        metavar=".ext",
+        default=parameters.get_output_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT_ANNOT"),
+        help='Output file extension. One of: {:s}'
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT_ANNOT"))))
+
+    group_wkp.add_argument(
         "--log",
         metavar="file",
         help="File name for a Procedure Outcome Report (default: None)")
-
-    # Add arguments for input/output files
-    # ------------------------------------
 
     group_io = parser.add_argument_group('Files')
 
@@ -106,27 +128,9 @@ if __name__ == "__main__":
         help='Input file name with activity of the speaker 2.')
 
     group_io.add_argument(
-        "-w",
-        metavar="file",
-        help='Workspace file name.')
-
-    group_io.add_argument(
-        "-I",
-        metavar="file",
-        help='Add and check a file into the workspace.')
-
-    group_io.add_argument(
         "-o",
         metavar="file",
         help='Output file name with overlaps.')
-
-    group_io.add_argument(
-        "-e",
-        metavar=".ext",
-        default=parameters.get_default_outformat_extension("ANNOT"),
-        choices=parameters.get_outformat_extensions("ANNOT"),
-        help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("ANNOT"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------
@@ -159,7 +163,6 @@ if __name__ == "__main__":
     if args.quiet:
         lgs.set_log_level(30)
 
-
     # Get options from arguments
     # --------------------------
 
@@ -175,11 +178,18 @@ if __name__ == "__main__":
               "".format(os.path.basename(PROGRAM)))
         sys.exit(1)
 
-    if args.w:
+    if args.i and args.I:
+        parser.print_usage()
+        print("{:s}: error: argument -I: not allowed with argument -i"
+              "".format(os.path.basename(PROGRAM)))
+        sys.exit(1)
 
-        wp = sppasWkpRW(args.w)
-        wkp = wp.read()
-        parameters.set_workspace(wkp)
+    if args.w or args.I:
+
+        if args.w:
+            wp = sppasWkpRW(args.w)
+            wkp = wp.read()
+            parameters.set_workspace(wkp)
 
         # Fix input files
         if args.I:
@@ -206,10 +216,11 @@ if __name__ == "__main__":
         ann = sppasOverActivity(log=None)
         ann.fix_options(parameters.get_options(ann_step_idx))
 
+        inputs = ([args.i], [args.s])
         if args.o:
-            ann.run([args.i, args.s], output=args.o)
+            ann.run(inputs, output=args.o)
         else:
-            trs = ann.run([args.i, args.s])
+            trs = ann.run(inputs)
             for tier in trs:
                 for a in tier:
                     print("{} {} {:s}".format(

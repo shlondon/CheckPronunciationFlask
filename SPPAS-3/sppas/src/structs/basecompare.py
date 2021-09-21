@@ -38,8 +38,8 @@
 
 """
 
-from sppas.src.exceptions import sppasValueError
-from sppas.src.exceptions import sppasTypeError
+from sppas.src.config import sppasValueError
+from sppas.src.config import sppasTypeError
 from sppas.src.utils.datatype import sppasType
 
 # ---------------------------------------------------------------------------

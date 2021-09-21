@@ -1,7 +1,7 @@
 {
   "__name__": "SPPAS",
   "__title__": "the automatic annotation and analysis of speech",
-  "__version__": "3.8",
+  "__version__": "3.9",
   "__summary__": "SPPAS can produce automatically annotations, perform analysis of annotated data\nand convert files from/to various formats. \n",
   "__description__": "SPPAS is able to produce automatically speech annotations from a recorded speech sound and its orthographic transcription. SPPAS is also helpful for the analysis of any annotated data: estimate statistical distributions, make requests, manage files, edit annotations, etc. SPPAS also offers a file converter from/to a wide range of formats: xra, TextGrid, eaf, trs and others",
   "__keywords__": "annotation, speech, automatic, analysis, transcription, recordings, audio",

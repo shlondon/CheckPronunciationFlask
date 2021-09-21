@@ -39,6 +39,7 @@
 
 """
 
+import os
 import logging
 
 from sppas.src.config import symbols
@@ -58,6 +59,7 @@ from sppas.src.resources import sppasMapping
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyInputError
 from ..annotationsexc import EmptyOutputError
+from ..annotationsexc import NoTierInputError
 from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
 
@@ -74,12 +76,6 @@ SIL_ORTHO = list(symbols.ortho.keys())[list(symbols.ortho.values()).index("silen
 
 class sppasPhon(sppasBaseAnnotation):
     """SPPAS integration of the Phonetization automatic annotation.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      develop@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2019  Brigitte Bigi
 
     """
 
@@ -122,7 +118,7 @@ class sppasPhon(sppasBaseAnnotation):
             elif key == "usestdtokens":
                 self.set_usestdtokens(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -272,7 +268,6 @@ class sppasPhon(sppasBaseAnnotation):
                         for p in phones:
                             phonetizations.extend(p.split(separators.variants))
 
-                # New in SPPAS 1.9.6.
                 #  - The result is a sequence of labels.
                 #  - Variants are alternative tags.
                 tags = [sppasTag(p) for p in set(phonetizations)]
@@ -286,22 +281,45 @@ class sppasPhon(sppasBaseAnnotation):
     # Apply the annotation on one given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the the tier with aligned tokens.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasTier)
+
+        """
+        tier = None
+        annot_ext = self.get_input_extensions()
+        tier_pattern = ""
+        if self._options['usestdtokens'] is True:
+            tier_pattern = "std"
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+            if tier is None and fe in annot_ext[0]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = sppasFindTier.tokenization(trs_input, tier_pattern)
+                if tier is not None:
+                    return tier
+
+        # Check input tier
+        logging.error("A tier with a normalized text was not found.")
+        raise NoTierInputError
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        :param input_file: (list of str) normalized text
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) Normalized text
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
         # Get the tier to be phonetized.
-        pattern = ""
-        if self._options['usestdtokens'] is True:
-            pattern = "std"
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        tier_input = sppasFindTier.tokenization(trs_input, pattern)
+        tier_input = self.get_inputs(input_files)
 
         # Phonetize the tier
         tier_phon = self.convert(tier_input)
@@ -311,9 +329,8 @@ class sppasPhon(sppasBaseAnnotation):
         if tier_phon is not None:
             trs_output.append(tier_phon)
 
-        trs_output.set_meta('text_phonetization_result_of', input_file[0])
-        trs_output.set_meta('text_phonetization_dict', self.__phonetizer.get_dict_filename())
-        self.transfer_metadata(trs_input, trs_output)
+        trs_output.set_meta('annotation_result_of', input_files[0])
+        trs_output.set_meta('phonetization_dict', self.__phonetizer.get_dict_filename())
 
         # Save in a file
         if output is not None:
@@ -329,10 +346,10 @@ class sppasPhon(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-phon")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-token")
+        return [self._options.get("inputpattern", "-token")]

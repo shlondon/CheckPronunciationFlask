@@ -316,10 +316,10 @@ class sppasToolbar(sppasPanel):
             self.__fg.append(st)
 
         if self.GetSizer().GetOrientation() == wx.HORIZONTAL:
-            align = wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL | wx.ALL
+            align = wx.ALIGN_LEFT | wx.ALL
         else:
             align = wx.ALIGN_LEFT | wx.ALL
-        self.GetSizer().Add(st, 0, align, 2)
+        self.GetSizer().Add(st, 0, align, sppasPanel.fix_size(6))
 
         return st
 

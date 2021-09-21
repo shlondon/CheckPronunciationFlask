@@ -1,35 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.ui.phoenix.page_files.pathstree.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  The panel to manage the tree of files.
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: http://www.sppas.org/
+..
+    -------------------------------------------------------------------------
 
-        Use of this software is governed by the GNU Public License, version 3.
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
-        This banner notice must not be removed.
-        ---------------------------------------------------------------------
+    Use of this software is governed by the GNU Public License, version 3.
 
-    src.ui.phoenix.page_files.pathstree.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    Main panel to manage the tree of files.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+
+    This banner notice must not be removed.
+
+    -------------------------------------------------------------------------
 
 """
 
@@ -55,8 +61,6 @@ FLS_TITLE = msg("Files: ", "ui")
 FLS_ACT_ADD = msg("Add", "ui")
 FLS_ACT_REM = msg("Remove checked", "ui")
 FLS_ACT_DEL = msg("Delete checked", "ui")
-FLS_ACT_EDIT = msg("Edit checked", "ui")
-FLS_ACT_MISS = msg("Edit missing", "ui")
 
 FLS_MSG_CONFIRM_DEL = msg("Are you sure you want to delete {:d} files?")
 
@@ -65,12 +69,6 @@ FLS_MSG_CONFIRM_DEL = msg("Are you sure you want to delete {:d} files?")
 
 class PathsTreePanel(sppasPanel):
     """Manage the tree of files and actions to perform on them.
-
-    :author:       Brigitte Bigi
-    :organization: Laboratoire Parole et Langage, Aix-en-Provence, France
-    :contact:      contact@sppas.org
-    :license:      GPL, v3
-    :copyright:    Copyright (C) 2011-2020  Brigitte Bigi
 
     """
 
@@ -151,9 +149,7 @@ class PathsTreePanel(sppasPanel):
         tb.AddButton("files-add", FLS_ACT_ADD)
         tb.AddButton("files-remove", FLS_ACT_REM)
         tb.AddButton("files-delete", FLS_ACT_DEL)
-        tb.AddButton("files-edit", FLS_ACT_EDIT)
-        # btn = tb.AddButton("files-missing", FLS_ACT_MISS)
-        # btn.Enable(False)
+
         return tb
 
     # -----------------------------------------------------------------------
@@ -222,12 +218,6 @@ class PathsTreePanel(sppasPanel):
         elif name == "files-delete":
             self.delete()
 
-        elif name == "files-edit":
-            self.edit()
-
-        elif name == "files-missing":
-            self.edit_missing()
-
         event.Skip()
 
     # ------------------------------------------------------------------------
@@ -286,29 +276,6 @@ class PathsTreePanel(sppasPanel):
                 self.notify()
         elif response == wx.ID_NO:
             wx.LogMessage('Response is no. No file deleted.')
-
-    # ------------------------------------------------------------------------
-
-    def edit(self):
-        """Open a dialog to edit checked files."""
-        data = self.get_data()
-        if data.is_empty():
-            wx.LogMessage('No files in data. Nothing to edit.')
-            return
-
-        checked_files = self._filestree.GetCheckedFiles()
-        if len(checked_files) == 0:
-            Information('None of the files are selected to be edited.')
-            return
-
-        self._filestree.EditCheckedFiles()
-
-    # ------------------------------------------------------------------------
-
-    def edit_missing(self):
-        """Open a dialog to take decisions about missing files of the data."""
-        Information("In a future version, you'll be able to remove or rename "
-                    "unknown paths and filenames of the list.")
 
 # ----------------------------------------------------------------------------
 

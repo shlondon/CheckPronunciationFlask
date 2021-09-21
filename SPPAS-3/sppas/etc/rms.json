@@ -1,7 +1,7 @@
 {
   "id": "rms",
   "name": "RMS",
-  "descr": "Estimates the Root-Mean Square values in intervals.",
+  "descr": "Estimate the root-mean-square values of an audio channel in given intervals, i.e. sqrt(sum(S_i^2)/n). This is a measure of the power in an audio signal.",
   "required": "",
   "api": "sppasRMS",
 
@@ -14,22 +14,28 @@
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
+      "type": "str",
+      "value": "",
+      "text": "Pattern of the audio file."
+    },
+    {
+      "id": "inputpattern2",
       "type": "str",
       "value": "-palign",
-      "text": "Input file pattern"
+      "text": "Pattern of the input file with intervals."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-rms",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with RMS values."
     },
     {
       "id": "tiername",
       "type": "str",
       "value": "PhonAlign",
-      "text": "Tier to fix intervals in which RMS is estimated "
+      "text": "Name of the tier to fix the intervals in which RMS is estimated: "
     }
   ]
 }

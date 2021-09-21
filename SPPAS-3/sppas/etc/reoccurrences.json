@@ -1,7 +1,7 @@
 {
   "id": "reoccurrences",
   "name": "Re-Occurrences",
-  "descr": "Search for re-occurrences of an annotation of a speaker in the next N annotations of the interlocutor (M. Karpinski et al. 2018).",
+  "descr": "Search for re-occurrences of an annotation of a speaker in the next N annotations of the interlocutor - re-implemented from an original idea of M. Karpinski et al. 2018.",
   "required": "",
   "api": "sppasReOcc",
 
@@ -17,13 +17,13 @@
       "id": "inputpattern",
       "type": "str",
       "value": "",
-      "text": "Input file pattern"
+      "text": "Pattern of the input file."
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-reocc",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with reoccurrences."
     },
     {
       "id": "tiername",
@@ -37,6 +37,10 @@
       "value": 10,
       "text": "Span window length in number of annotations"
     }
-  ]
+  ],
+
+  "refs": {
+    "karpinskiklessa2018": "https://cmst.eu/wp-content/uploads/files/10.12921_cmst.2018.0000006_KLESSA_c.pdf"
+  }
 }
 

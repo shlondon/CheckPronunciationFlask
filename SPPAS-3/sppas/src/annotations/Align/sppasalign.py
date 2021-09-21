@@ -44,23 +44,25 @@ import os
 import logging
 import traceback
 
-from sppas.src.exceptions import NoDirectoryError
+from sppas.src.config import NoDirectoryError
 from sppas.src.config import paths
 from sppas.src.config import annots
 from sppas.src.config import info
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTranscription
 from sppas.src.anndata import sppasMedia
-import sppas.src.audiodata.aio as audioaio
+import sppas.src.audiodata.aio
 from sppas.src.resources.mapping import sppasMapping
 from sppas.src.models.acm.modelmixer import sppasModelMixer
 from sppas.src.wkps.fileutils import sppasFileUtils
 
+from ..annotationsexc import AudioChannelError
 from ..baseannot import sppasBaseAnnotation
 from ..searchtier import sppasFindTier
 from ..annotationsexc import AnnotationOptionError
 from ..annotationsexc import EmptyDirectoryError
 from ..annotationsexc import NoTierInputError
+from ..autils import SppasFiles
 
 from .tracksio import TracksReaderWriter
 from .tracksgmt import TrackSegmenter
@@ -190,7 +192,7 @@ class sppasAlign(sppasBaseAnnotation):
             elif "aligner" == key:
                 self.set_aligner(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -357,52 +359,72 @@ class sppasAlign(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def get_inputs(self, input_files):
+        """Return the audio file name and the 2 tiers.
+
+        Two tiers: the tier with phonetization and the tier with text normalization.
+
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasChannel, sppasTier, sppasTier)
+
+        """
+        # Get the tier and the channel
+        ext = self.get_input_extensions()
+        audio_ext = ext[0]
+        tier_phon = None
+        tier_tok_faked = None
+        tier_tok_std = None
+        audio_filename = None
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+
+            if audio_filename is None and fe in audio_ext:
+                audio_filename = filename
+
+            if fe in ext[1]:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                if tier_phon is None:
+                    # a raw transcription is expected. "raw" must be in the name.
+                    tier_phon = sppasFindTier.phonetization(trs_input)
+                if tier_tok_std is None:
+                    tier_tok_std = sppasFindTier.tokenization(trs_input, "std")
+                if tier_tok_faked is None:
+                    tier_tok_faked = sppasFindTier.tokenization(trs_input)
+
+        if tier_tok_std is None and tier_tok_faked is None:
+            self.logfile.print_message(MSG_TOKENS_DISABLED, indent=2, status=annots.warning)
+
+        if tier_phon is None:
+            logging.error("A tier with a phonetization is required but was not found")
+            raise NoTierInputError
+
+        return audio_filename, tier_phon, tier_tok_std, tier_tok_faked
+
+    # -----------------------------------------------------------------------
+
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
-        Important: options could be changed!
-
-        :param input_file: (list of str) (phonemes)
-        :param opt_input_file: (list of str) (audio, tokens)
+        :param input_files: (list of str) Phonemes, and optionally tokens, audio
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
         # Get the phonemes tier to be time-aligned
-        parser = sppasTrsRW(input_file[0])
-        trs_input = parser.read()
-        phon_tier = sppasFindTier.phonetization(trs_input)
-        if phon_tier is None:
-            raise NoTierInputError
+        audio_filename, phon_tier, tok_tier, tok_faked_tier = self.get_inputs(input_files)
 
-        # Get the tokens tier to be time-aligned
-        try:
-            parser = sppasTrsRW(opt_input_file[1])
-            trs_input_tok = parser.read()
-            tok_tier = sppasFindTier.tokenization(trs_input_tok, "std")
-            tok_faked_tier = sppasFindTier.tokenization(trs_input_tok)
-        except:   # IOError, AttributeError:
-            tok_tier = None
-            tok_faked_tier = None
-            self.logfile.print_message(
-                MSG_TOKENS_DISABLED, indent=2, status=annots.warning)
-
-        # Get the audio file (check it first)
-        input_audio_filename = None
         framerate = None
-        if opt_input_file is not None and len(opt_input_file) > 0 and\
-           opt_input_file[0] is not None:
-            try:
-                audio = audioaio.open(opt_input_file[0])
-                framerate = audio.get_framerate()
-                audio.close()
-                input_audio_filename = opt_input_file[0]
-            except Exception as e:
-                self.logfile.print_message(
-                    "Error with audio file: "+str(e), indent=2,
-                    status=annots.error)
-
-        if input_audio_filename is None:
+        if audio_filename is not None:
+            audio_speech = sppas.src.audiodata.aio.open(audio_filename)
+            n = audio_speech.get_nchannels()
+            framerate = audio_speech.get_framerate()
+            if n != 1:
+                audio_speech.close()
+                raise AudioChannelError(n)
+            audio_speech.close()
+        else:
             self.logfile.print_message(
                 "Audio is unavailable. Aligner is set to 'basic' and "
                 "no extra option available.",
@@ -411,17 +433,17 @@ class sppasAlign(sppasBaseAnnotation):
             self._options['aligner'] = "basic"
 
         # Prepare data
-        workdir = sppasAlign.fix_workingdir(input_audio_filename)
+        workdir = sppasAlign.fix_workingdir(audio_filename)
         if self._options['clean'] is False:
             self.logfile.print_message(
                 MSG_WORKDIR.format(dirname=workdir), indent=3, status=None)
 
         # Set media
         media = None
-        if input_audio_filename is not None:
-            extm = os.path.splitext(input_audio_filename)[1].lower()[1:]
-            media = sppasMedia(input_audio_filename, mime_type="audio/"+extm)
-            logging.info("Alignment of {:s}".format(input_audio_filename))
+        if audio_filename is not None:
+            extm = os.path.splitext(audio_filename)[1].lower()[1:]
+            media = sppasMedia(audio_filename, mime_type="audio/"+extm)
+            logging.info("Alignment of {:s}".format(audio_filename))
 
         # Processing...
         try:
@@ -429,17 +451,18 @@ class sppasAlign(sppasBaseAnnotation):
                 phon_tier,
                 tok_tier,
                 tok_faked_tier,
-                input_audio_filename,
+                audio_filename,
                 workdir
             )
             if media is not None:
                 tier_phn.set_media(media)
+                tier_tok.set_media(media)
+                tier_pron.set_media(media)
 
             trs_output = sppasTranscription(self.name)
             if framerate is not None:
                 trs_output.set_meta("media_sample_rate", str(framerate))
-            trs_output.set_meta('audio_alignment_result_of', input_file[0])
-            self.transfer_metadata(trs_input, trs_output)
+            trs_output.set_meta('annotation_result_of', input_files[0])
 
             trs_output.append(tier_phn)
             if tier_tok is not None:
@@ -495,14 +518,25 @@ class sppasAlign(sppasBaseAnnotation):
 
     # -----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-palign")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "-phon")
+        return [
+            self._options.get("inputpattern1", ""),
+            self._options.get("inputpattern2", "-phon"),
+            self._options.get("inputpattern3", '-token')
+            ]
 
-    def get_opt_input_pattern(self):
-        """Pattern that the annotation can optionally use as input."""
-        return self._options.get("inputoptpattern", '-token')
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def get_input_extensions():
+        """Extensions that the annotation expects for its input filename."""
+        return [
+            SppasFiles.get_informat_extensions("AUDIO"),
+            SppasFiles.get_informat_extensions("ANNOT_ANNOT"),
+            SppasFiles.get_informat_extensions("ANNOT_ANNOT")
+            ]

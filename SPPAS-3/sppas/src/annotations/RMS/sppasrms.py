@@ -1,39 +1,41 @@
 # -*- coding: UTF-8 -*-
 """
-    ..
-        ---------------------------------------------------------------------
-         ___   __    __    __    ___
-        /     |  \  |  \  |  \  /              the automatic
-        \__   |__/  |__/  |___| \__             annotation and
-           \  |     |     |   |    \             analysis
-        ___/  |     |     |   | ___/              of speech
+:filename: sppas.src.annotations.RMS.sppasrms.py
+:author:   Brigitte Bigi
+:contact:  develop@sppas.org
+:summary:  SPPAS integration of RMS automatic annotation
 
-        http://www.sppas.org/
+.. _This file is part of SPPAS: <http://www.sppas.org/>
+..
+    -------------------------------------------------------------------------
 
-        Copyright (C) 2011-2021  Brigitte Bigi
-        Laboratoire Parole et Langage, Aix-en-Provence, France
+     ___   __    __    __    ___
+    /     |  \  |  \  |  \  /              the automatic
+    \__   |__/  |__/  |___| \__             annotation and
+       \  |     |     |   |    \             analysis
+    ___/  |     |     |   | ___/              of speech
 
-        Use of this software is governed by the GNU Public License, version 3.
+    Copyright (C) 2011-2021  Brigitte Bigi
+    Laboratoire Parole et Langage, Aix-en-Provence, France
 
-        SPPAS is free software: you can redistribute it and/or modify
-        it under the terms of the GNU General Public License as published by
-        the Free Software Foundation, either version 3 of the License, or
-        (at your option) any later version.
+    Use of this software is governed by the GNU Public License, version 3.
 
-        SPPAS is distributed in the hope that it will be useful,
-        but WITHOUT ANY WARRANTY; without even the implied warranty of
-        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-        GNU General Public License for more details.
+    SPPAS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-        You should have received a copy of the GNU General Public License
-        along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
+    SPPAS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-        This banner notice must not be removed.
+    You should have received a copy of the GNU General Public License
+    along with SPPAS. If not, see <http://www.gnu.org/licenses/>.
 
-        ---------------------------------------------------------------------
+    This banner notice must not be removed.
 
-    src.annotations.sppasrms.py
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    -------------------------------------------------------------------------
 
 """
 
@@ -41,9 +43,7 @@ import logging
 import os
 
 from sppas.src.utils import sppasUnicode
-
 import sppas.src.audiodata.aio
-
 from sppas.src.anndata import sppasTrsRW
 from sppas.src.anndata import sppasTag
 from sppas.src.anndata import sppasLabel
@@ -51,14 +51,15 @@ from sppas.src.anndata import sppasTier
 from sppas.src.anndata import sppasMedia
 from sppas.src.anndata import sppasTranscription
 from sppas.src.anndata.aio.aioutils import serialize_labels
+from sppas.src.anndata.anndataexc import AnnDataTypeError
 
 from ..annotationsexc import AnnotationOptionError
-from ..annotationsexc import AudioChannelError
+from ..annotationsexc import NoChannelInputError
 from ..annotationsexc import NoTierInputError
-from ..annotationsexc import BadInputError
 from ..annotationsexc import EmptyInputError
 from ..annotationsexc import EmptyOutputError
 from ..baseannot import sppasBaseAnnotation
+from ..autils import SppasFiles
 
 from .irms import IntervalsRMS
 
@@ -66,18 +67,15 @@ from .irms import IntervalsRMS
 
 
 class sppasRMS(sppasBaseAnnotation):
-    """SPPAS integration of the automatic rms estimator on intervals.
+    """SPPAS integration of the automatic RMS estimator on intervals.
 
-    :author:       Brigitte Bigi
-    :contact:      develop@sppas.org
+    Estimate the root-mean-square of segments, i.e. sqrt(sum(S_i^2)/n).
+    This is a measure of the power in an audio signal.
 
     """
 
     def __init__(self, log=None):
         """Create a new sppasRMS instance.
-
-        Log is used for a better communication of the annotation process and its
-        results. If None, logs are redirected to the default logging system.
 
         :param log: (sppasLog) Human-readable logs.
 
@@ -101,7 +99,7 @@ class sppasRMS(sppasBaseAnnotation):
             if "tiername" == key:
                 self.set_tiername(opt.get_value())
 
-            elif key in ("inputpattern", "outputpattern", "inputoptpattern"):
+            elif "pattern" in key:
                 self._options[key] = opt.get_value()
 
             else:
@@ -168,68 +166,82 @@ class sppasRMS(sppasBaseAnnotation):
 
         return rms_avg, rms_values, rms_mean
 
-    # ----------------------------------------------------------------------
+    # -----------------------------------------------------------------------
 
-    def input_tier(self, trs_input):
-        """Return the input tier from the input file.
+    def get_inputs(self, input_files):
+        """Return the channel and the tier with ipus.
 
-        :param trs_input: (sppasTranscription)
+        :param input_files: (list)
+        :raise: NoTierInputError
+        :return: (sppasChannel, sppasTier)
 
         """
-        tier_spk = trs_input.find(self._options['tiername'], case_sensitive=False)
-        if tier_spk is None:
-            logging.error("Tier with name '{:s}' not found in input file."
+        # Get the tier and the channel
+        ext = self.get_input_extensions()
+        audio_ext = ext[0]
+        annot_ext = ext[1]
+        tier = None
+        channel = None
+        audio_filename = ""
+
+        for filename in input_files:
+            fn, fe = os.path.splitext(filename)
+
+            if channel is None and fe in audio_ext:
+                audio_speech = sppas.src.audiodata.aio.open(filename)
+                n = audio_speech.get_nchannels()
+                if n != 1:
+                    audio_speech.close()
+                idx = audio_speech.extract_channel()
+                channel = audio_speech.get_channel(idx)
+                audio_filename = filename
+                audio_speech.close()
+
+            elif tier is None and fe in annot_ext:
+                parser = sppasTrsRW(filename)
+                trs_input = parser.read()
+                tier = trs_input.find(self._options['tiername'], case_sensitive=False)
+
+        # Check input tier
+        if tier is None:
+            logging.error("Tier with name '{:s}' not found."
                           "".format(self._options['tiername']))
             raise NoTierInputError
-        if tier_spk.is_empty() is True:
+        if tier.is_interval() is False:
+            logging.error("The tier should be of type: Interval.")
+            raise AnnDataTypeError(tier.get_name(), 'IntervalTier')
+        if tier.is_empty() is True:
             raise EmptyInputError(self._options['tiername'])
-        if tier_spk.is_interval() is False:
-            logging.error("Tier {:s} is not of expected type Interval"
-                          "".format(self._options['tiername']))
-            raise BadInputError()
 
-        return tier_spk
+        # Check input channel
+        if channel is None:
+            logging.error("No audio file found or invalid one. "
+                          "An audio file with only one channel was expected.")
+            raise NoChannelInputError
 
-    # ----------------------------------------------------------------------
+        # Set the media to the input tier
+        extm = os.path.splitext(audio_filename)[1].lower()[1:]
+        media = sppasMedia(os.path.abspath(audio_filename), mime_type="audio/"+extm)
+        tier.set_media(media)
 
-    def input_channel(self, input_file):
-        """Return the input channel from the input file.
-
-        :param input_file: (str) Name of an audio file
-
-        """
-        audio_speech = sppas.src.audiodata.aio.open(input_file)
-        n = audio_speech.get_nchannels()
-        if n != 1:
-            raise AudioChannelError(n)
-
-        # Extract the channel and set it to the RMS estimator
-        idx = audio_speech.extract_channel(0)
-        return audio_speech.get_channel(idx)
+        return channel, tier
 
     # ----------------------------------------------------------------------
     # Apply the annotation on a given file
     # -----------------------------------------------------------------------
 
-    def run(self, input_file, opt_input_file=None, output=None):
+    def run(self, input_files, output=None):
         """Run the automatic annotation process on an input.
 
         Input file is a tuple with 2 files:
         the audio file and the annotation file
 
-        :param input_file: (list of str) (audio, time-aligned items)
-        :param opt_input_file: (list of str) ignored
+        :param input_files: (list of str) (audio, time-aligned items)
         :param output: (str) the output name
         :returns: (sppasTranscription)
 
         """
-        # Get the tier with the intervals we'll estimate rms values
-        parser = sppasTrsRW(input_file[1])
-        trs_input = parser.read()
-        tier = self.input_tier(trs_input)
-
-        # Get audio and the channel we'll work on
-        channel = self.input_channel(input_file[0])
+        channel, tier = self.get_inputs(input_files)
         self.__rms.set_channel(channel)
 
         # RMS Automatic Estimator
@@ -237,17 +249,9 @@ class sppasRMS(sppasBaseAnnotation):
 
         # Create the transcription result
         trs_output = sppasTranscription(self.name)
-        trs_output.set_meta('rms_result_of_audio', input_file[0])
-        trs_output.set_meta('rms_result_of_transcription', input_file[1])
-        self.transfer_metadata(trs_input, trs_output)
-
-        extm = os.path.splitext(input_file[0])[1].lower()[1:]
-        media = sppasMedia(os.path.abspath(input_file[0]),
-                           mime_type="audio/"+extm)
-
-        for tier in new_tiers:
-            tier.set_media(media)
-            trs_output.append(tier)
+        trs_output.set_meta('annotation_result_of', input_files[0])
+        for t in new_tiers:
+            trs_output.append(t)
 
         # Save in a file
         if output is not None:
@@ -263,10 +267,23 @@ class sppasRMS(sppasBaseAnnotation):
 
     # ----------------------------------------------------------------------
 
-    def get_pattern(self):
+    def get_output_pattern(self):
         """Pattern this annotation uses in an output filename."""
         return self._options.get("outputpattern", "-rms")
 
-    def get_input_pattern(self):
+    def get_input_patterns(self):
         """Pattern this annotation expects for its input filename."""
-        return self._options.get("inputpattern", "")
+        return [
+            self._options.get("inputpattern1", ""),
+            self._options.get("inputpattern2", "-palign")
+        ]
+
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def get_input_extensions():
+        """Extensions that the annotation expects for its input filename."""
+        return [
+            SppasFiles.get_informat_extensions("AUDIO"),
+            SppasFiles.get_informat_extensions("ANNOT_ANNOT")
+        ]

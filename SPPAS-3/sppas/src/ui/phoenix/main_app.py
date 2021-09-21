@@ -3,7 +3,7 @@
 :filename: sppas.src.ui.phoenix.main_app.py
 :author:   Brigitte Bigi
 :contact:  develop@sppas.org
-:summary:  This is the main application for SPPAS, based on the Phoenix API.
+:summary:  This is the application for SPPAS, based on the Phoenix API.
 
 .. _This file is part of SPPAS: http://www.sppas.org/
 ..
@@ -63,8 +63,6 @@ from .main_settings import WxAppSettings
 from .main_window import sppasMainWindow
 from .tools import sppasSwissKnife
 
-from sppas.src.config.logs import sppasLogSetup
-
 # ---------------------------------------------------------------------------
 
 
@@ -101,11 +99,31 @@ class sppasApp(wx.App):
         self.process_command_line_args()
         self.setup_python_logging()
 
+        # This catches events when the app is asked to activate by some other process
+        self.Bind(wx.EVT_ACTIVATE_APP, self.OnActivate)
+
     # -----------------------------------------------------------------------
 
     def InitLocale(self):
         """Override."""
         return
+
+    def BringWindowToFront(self):
+        try:
+            # it's possible for this event to come when the frame is closed
+            self.GetTopWindow().Raise()
+        except:
+            pass
+
+    def MacReopenApp(self):
+        """Called when the doc icon is clicked, and ???."""
+        self.BringWindowToFront()
+
+    def OnActivate(self, event):
+        # if this is an activate event, rather than something else, like iconize.
+        if event.GetActive():
+            self.BringWindowToFront()
+        event.Skip()
 
     # -----------------------------------------------------------------------
     # Methods to configure and starts the app
@@ -255,7 +273,6 @@ class sppasApp(wx.App):
         self.settings.save()
 
         if self.HasPendingEvents() is True:
-            logging.warning('The application has pending events.')
             self.DeletePendingEvents()
 
         # then it will exit normally. Return the exit status 0 = normal.

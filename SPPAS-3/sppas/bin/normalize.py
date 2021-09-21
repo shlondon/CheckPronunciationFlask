@@ -54,6 +54,7 @@ from sppas.src.anndata.aio.aioutils import serialize_labels
 from sppas.src.annotations import sppasTextNorm
 from sppas.src.annotations.TextNorm.normalize import TextNormalizer
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasAnnotationsManager
 from sppas.src.resources import sppasVocabulary
 from sppas.src.resources import sppasDictRepl
@@ -130,10 +131,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("ANNOT"),
-        choices=parameters.get_outformat_extensions("ANNOT"),
+        default=parameters.get_output_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT_ANNOT"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("ANNOT"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT_ANNOT"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------
@@ -174,7 +175,6 @@ if __name__ == "__main__":
 
     if args.quiet:
         lgs.set_log_level(30)
-
 
     # Get options from arguments
     # --------------------------

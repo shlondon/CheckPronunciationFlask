@@ -55,6 +55,7 @@ from sppas import sg, lgs
 
 from sppas.src.anndata.aio.aioutils import serialize_labels
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasAnnotationsManager
 from sppas.src.annotations import sppasStopWords
 
@@ -132,10 +133,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("ANNOT"),
-        choices=parameters.get_outformat_extensions("ANNOT"),
+        default=parameters.get_output_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT_ANNOT"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("ANNOT"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT_ANNOT"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------

@@ -248,7 +248,7 @@ class sppasLogWindow(wx.TopLevelWindow):
         w = int(settings.frame_size[0] * 0.7)
         h = int(settings.frame_size[1] * 0.7)
         self.SetSize(wx.Size(w, h))
-        self.SetName('sppas_log_frm')
+        self.SetName("frm_logs")
 
         # icon
         _icon = wx.Icon()

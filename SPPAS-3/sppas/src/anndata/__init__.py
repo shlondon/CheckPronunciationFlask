@@ -69,8 +69,10 @@ from .media import sppasMedia
 from .hierarchy import sppasHierarchy
 from .ann.annlabel import sppasLabel
 from .ann.annlabel import sppasTag
+from .ann.annlabel import sppasTagCompare
 from .ann.annlocation import sppasLocation
 from .ann.annlocation import sppasDuration
+from .ann.annlocation import sppasDurationCompare
 from .ann.annlocation import sppasInterval
 from .ann.annlocation import sppasPoint
 from .ann.annlocation import sppasDisjoint
@@ -89,8 +91,10 @@ __all__ = (
     'sppasHierarchy',
     'sppasLabel',
     'sppasTag',
+    'sppasTagCompare',
     'sppasLocation',
     'sppasDuration',
+    'sppasDurationCompare',
     'sppasDisjoint',
     'sppasInterval',
     'sppasPoint',

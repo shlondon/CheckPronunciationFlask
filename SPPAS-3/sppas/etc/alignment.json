@@ -1,7 +1,7 @@
 {
   "id": "alignment",
   "name": "Alignment",
-  "descr": "Choose one of the pronunciation variants and performs the time-alignment of such phonemes to the related audio, and also the tokens if available. Requires the Phonetization grammar, and optionally the Normalized text. Produces time-aligned phonemes and optionally time-aligned tokens.",
+  "descr": "Choose one of the pronunciation variants of a phonetization and performs the time-alignment of such phonemes to the related audio, and also the tokens if available. Requires the Phonetization grammar, and optionally the Normalized text. Produces time-aligned phonemes and optionally time-aligned tokens.",
   "required": "phonetize",
   "api": "sppasAlign",
 
@@ -20,28 +20,34 @@
 
   "options": [
     {
-      "id": "inputpattern",
+      "id": "inputpattern1",
       "type": "str",
-      "value": "-phon",
-      "text": "Input file pattern (phonetization)"
+      "value": "",
+      "text": "Pattern of the audio file"
     },
     {
-      "id": "inputoptpattern",
+      "id": "inputpattern2",
+      "type": "str",
+      "value": "-phon",
+      "text": "Pattern of the file with the phonetization"
+    },
+    {
+      "id": "inputpattern3",
       "type": "str",
       "value": "-token",
-      "text": "Optional input file pattern (tokenization)"
+      "text": "Pattern of the optional file with the normalized text"
     },
     {
       "id": "outputpattern",
       "type": "str",
       "value": "-palign",
-      "text": "Output file pattern"
+      "text": "Pattern of the output file with time-aligned phonemes and tokens"
     },
     {
       "id": "aligner",
       "type": "str",
       "value": "julius",
-      "text": "Speech automatic aligner system (julius, hvite, basic)"
+      "text": "Speech automatic aligner system. Can be: julius, hvite, basic"
     },
     {
       "id": "basic",

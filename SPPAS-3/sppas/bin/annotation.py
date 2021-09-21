@@ -48,11 +48,11 @@ PROGRAM = os.path.abspath(__file__)
 SPPAS = os.path.dirname(os.path.dirname(os.path.dirname(PROGRAM)))
 sys.path.append(SPPAS)
 
-from sppas import sg, annots, lgs
+from sppas import sg, lgs
 
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasParam
 from sppas.src.annotations import sppasAnnotationsManager
-from sppas.src.anndata.aio import extensions_out
 from sppas.src.ui.term.textprogress import ProcessProgressTerminal
 from sppas.src.ui.term.terminalcontroller import TerminalController
 
@@ -115,10 +115,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=annots.annot_extension,
-        choices=extensions_out,
+        default=SppasFiles.get_default_extension("ANNOT"),
+        choices=SppasFiles.get_outformat_extensions("ANNOT"),
         help='Output annotation file extension. One of: {:s}'
-             ''.format(" ".join(extensions_out)))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("ANNOT"))))
 
     # Add the annotations
     # ------------------------------------------------

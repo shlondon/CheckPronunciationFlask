@@ -53,6 +53,7 @@ from sppas import sg, lgs
 
 from sppas.src.annotations import sppasFaceDetection
 from sppas.src.annotations import sppasParam
+from sppas.src.annotations import SppasFiles
 from sppas.src.annotations import sppasAnnotationsManager
 
 # ---------------------------------------------------------------------------
@@ -125,10 +126,10 @@ if __name__ == "__main__":
     group_io.add_argument(
         "-e",
         metavar=".ext",
-        default=parameters.get_default_outformat_extension("IMAGE"),
-        choices=parameters.get_outformat_extensions("IMAGE"),
+        default=parameters.get_output_extension("IMAGE"),
+        choices=SppasFiles.get_outformat_extensions("IMAGE"),
         help='Output file extension. One of: {:s}'
-             ''.format(" ".join(parameters.get_outformat_extensions("IMAGE"))))
+             ''.format(" ".join(SppasFiles.get_outformat_extensions("IMAGE"))))
 
     # Add arguments from the options of the annotation
     # ------------------------------------------------

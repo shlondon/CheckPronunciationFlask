@@ -73,6 +73,14 @@ parser.add_argument("-f",
                     type=float,
                     help='Frame duration to estimate rms values (default: 0.02)')
 
+parser.add_argument("--clipping",
+                    action='store_true',
+                    help="Enable detailed clipping information")
+
+parser.add_argument("--noclipping",
+                    action='store_true',
+                    help="Disable clipping information")
+
 if len(sys.argv) <= 1:
     sys.argv.append('-h')
 
@@ -91,12 +99,17 @@ nc = audio.get_nchannels()
 print("Number of channels:  {:d}".format(nc))
 
 if nc == 1:
-    if args.clip:
-        print("Clipping rate (in %):")
+    print("Clipping rate (in %):")
+    if args.clipping:
+        for i in range(1, 190, 20):
+            f = float(i) / 1000.
+            c = audio.clipping_rate(f) * 100.
+            print("  - factor={:.2f}:      {:.3f}".format(f, c))
+    if not args.noclipping:
         for i in range(2, 9, 2):
             f = float(i)/10.
             c = audio.clipping_rate(f) * 100.
-            print("  - factor={:.1f}:      {:.3f}".format(f, c))
+            print("  - factor={:.2f}:      {:.3f}".format(f, c))
 
     audiovol = sppasAudioVolume(audio, args.f)
     print("Volume:")
@@ -118,10 +131,16 @@ else:
         # Values related to amplitude
         frames = channel.get_frames(channel.get_nframes())
         ca = sppasAudioFrames(frames, channel.get_sampwidth(), 1)
-        for i in range(2, 9, 2):
-            f = float(i)/10.
-            c = ca.clipping_rate(f) * 100.
-            print("  - factor={:.1f}:      {:.3f}".format(f, c))
+        if args.clipping:
+            for i in range(1, 190, 20):
+                f = float(i) / 1000.
+                c = ca.clipping_rate(f) * 100.
+                print("  - factor={:.2f}:      {:.3f}".format(f, c))
+        if not args.noclipping:
+            for i in range(2, 9, 2):
+                f = float(i)/10.
+                c = ca.clipping_rate(f) * 100.
+                print("  - factor={:.2f}:      {:.3f}".format(f, c))
 
         # RMS (=volume)
         cv = sppasChannelVolume(channel)
