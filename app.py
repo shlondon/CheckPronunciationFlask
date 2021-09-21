@@ -14,6 +14,7 @@ def hello_world():
 @app.route('/', methods=['POST'])
 def read_base64_files():
     # Tecnology
+    print('Loading technologies ...')
     from pydub import AudioSegment
     from pydub.effects import normalize
     import speech_recognition as sr
