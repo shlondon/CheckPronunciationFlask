@@ -119,9 +119,9 @@ def read_base64_files():
 
     while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
         # Forced alignment
-        annotation_fillipus = './SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
-        os.system(annotation_fillipus)
-        print(annotation_fillipus)
+        # annotation_fillipus = './SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
+        # os.system(annotation_fillipus)
+        # print(annotation_fillipus)
         # # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -r .SPPAS-3/resources/vocab/spa.vocab -I ./audios -l spa -e .csv'
         # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -I ./audios -l spa -e .csv'
         # os.system(annotation_textnormalization)
