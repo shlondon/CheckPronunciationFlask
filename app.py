@@ -151,6 +151,8 @@ def read_base64_files():
     print(os.listdir())
     print('Its printing files into audios folder')
     print(os.listdir('./audios'))
+    print('Content into pronunciation-palign.csv file')
+    print(os.system('./audios/pronunciation-palign.csv'))
     path_pronunciation_palign = './audios/pronunciation-palign.csv'
     df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
     df_pronunciation_palign['duration'] = df_pronunciation_palign.end - df_pronunciation_palign.start
