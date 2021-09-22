@@ -123,36 +123,46 @@ def read_base64_files():
     print('Printing information into pronunciation.txt')
     print(os.system('cat ./audios/pronunciation.txt'))
 
-    # # To excecute forced alignment process until to produce the whished files
-    # print('Its doing forced alignment process')
-    # namepronunciationfile = 'pronunciation-palign.csv'
-    # namepronunciationNativefile = 'pronunciationNative-palign.csv'
-    # filesinaudio = os.listdir('./audios')
-    # number_of_times = 0
-    # print('With SPPAS 3.9')
+    # To excecute forced alignment process until to produce the whished files
+    print('Its doing forced alignment process')
+    namepronunciationfile = 'pronunciation-palign.csv'
+    namepronunciationNativefile = 'pronunciationNative-palign.csv'
+    filesinaudio = os.listdir('./audios')
+    number_of_times = 0
+    print('With SPPAS 3.9')
 
-    # while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
-    #     # Forced alignment
-    #     # annotation_fillipus = './SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
-    #     # os.system(annotation_fillipus)
-    #     # print(annotation_fillipus)
-    #     # # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -r .SPPAS-3/resources/vocab/spa.vocab -I ./audios -l spa -e .csv'
-    #     # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -I ./audios -l spa -e .csv'
-    #     # os.system(annotation_textnormalization)
-    #     # print(annotation_textnormalization)
-    #     # annotation_phonetization = './SPPAS-3/sppas/bin/phonetize.py -I ./audios -l spa -e .csv'
-    #     # os.system(annotation_phonetization)
-    #     # print(annotation_phonetization)
-    #     # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
-    #     # os.system(annotation_alignment)
-    #     # print(annotation_alignment)
-    #     annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I ./audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
-    #     os.system(annotation_cli)
-    #     print(annotation_cli)
-    #     filesinaudio = os.listdir('./audios')
-    #     number_of_times += 1
+    while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
+        # Forced alignment
+        # annotation_fillipus = './SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
+        # os.system(annotation_fillipus)
+        # print(annotation_fillipus)
+        # # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -r .SPPAS-3/resources/vocab/spa.vocab -I ./audios -l spa -e .csv'
+        # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -I ./audios -l spa -e .csv'
+        # os.system(annotation_textnormalization)
+        # print(annotation_textnormalization)
+        # annotation_phonetization = './SPPAS-3/sppas/bin/phonetize.py -I ./audios -l spa -e .csv'
+        # os.system(annotation_phonetization)
+        # print(annotation_phonetization)
+        # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
+        # os.system(annotation_alignment)
+        # print(annotation_alignment)
+        annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I ./audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
+        os.system(annotation_cli)
+        print(annotation_cli)
+        filesinaudio = os.listdir('./audios')
+        number_of_times += 1
 
-    # print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
+    print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
+    print('Printing files into audios folder')
+    print(os.listdir('./audios'))
+    print('Printing information into pronunciation.txt')
+    print(os.system('cat ./audios/pronunciation.txt'))
+    print('Printing information into pronunciationNative.txt')
+    print(os.system('cat ./audios/pronunciationNative.txt'))
+    print('Content into pronunciation-palign.csv file')
+    print(os.system('cat ./audios/pronunciation-palign.csv'))
+    print('Content into pronunciationNative-palign.csv file')
+    print(os.system('cat ./audios/pronunciationNative-palign.csv'))
 
     # # Calculate Completeness Score
     # print('Its calculating scores')
