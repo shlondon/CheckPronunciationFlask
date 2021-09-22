@@ -44,23 +44,24 @@ def read_base64_files():
     print('Files and folders after creat RawAudioAndTxtFile')
     print(os.listdir())
 
-    
-    # # Pronunciation Audio
-    # pathnamepronunciationAudio = './RawAudiosAndTxtFile/pronunciation.' + pronunciationFormat
-    # pronunciationAudio = open(pathnamepronunciationAudio, "wb")
-    # decode_string = base64.b64decode(pronunciationBase64)
-    # pronunciationAudio.write(decode_string)
+    # Pronunciation Audio
+    pathnamepronunciationAudio = './RawAudiosAndTxtFile/pronunciation.' + pronunciationFormat
+    pronunciationAudio = open(pathnamepronunciationAudio, "wb")
+    decode_string = base64.b64decode(pronunciationBase64)
+    pronunciationAudio.write(decode_string)
 
-    # # Pronunciation Native Audio
-    # pathnamepronunciationNativeAudio = './RawAudiosAndTxtFile/pronunciationNative.' + pronunciationNativeFormat
-    # pronunciationNativeAudio = open(pathnamepronunciationNativeAudio, "wb")
-    # decode_string = base64.b64decode(pronunciationNativeBase64)
-    # pronunciationNativeAudio.write(decode_string)
+    # Pronunciation Native Audio
+    pathnamepronunciationNativeAudio = './RawAudiosAndTxtFile/pronunciationNative.' + pronunciationNativeFormat
+    pronunciationNativeAudio = open(pathnamepronunciationNativeAudio, "wb")
+    decode_string = base64.b64decode(pronunciationNativeBase64)
+    pronunciationNativeAudio.write(decode_string)
 
-    # # write phrase.txt file
-    # text_file = open('./RawAudiosAndTxtFile/pronunciationNative.txt', "wt")
-    # n = text_file.write(phrase)
-    # text_file.close()
+    # write phrase.txt file
+    text_file = open('./RawAudiosAndTxtFile/pronunciationNative.txt', "wt")
+    n = text_file.write(phrase)
+    text_file.close()
+    print('Printing files into RawAudiosAndTxtFile')
+    print(os.listdir())
 
     # # Generate adecuate audio files
     # print('Its generating adecuate audio files')
