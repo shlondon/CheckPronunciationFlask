@@ -23,7 +23,8 @@ def read_base64_files():
 
     # Remove audios and RawAudiosAndTxtFile
     if 'tmp' in os.listdir():
-        os.system  ('rm -r tmp')
+        os.system('rm -r tmp/RawAudiosAndTxtFile')
+        os.system('rm -r tmp/audios')
 
     # Read information
     print('Its reading request inputs')
@@ -44,34 +45,34 @@ def read_base64_files():
     print('Files and folders')
     print(os.listdir())
     os.system('mkdir tmp')
-    os.system('mkdir /tmp/RawAudiosAndTxtFile')
-    print('Files and folders after create /tmp/RawAudioAndTxtFile')
+    os.system('mkdir tmp/RawAudiosAndTxtFile')
+    print('Files and folders after create tmp/RawAudioAndTxtFile')
     print(os.listdir())
 
     # Pronunciation Audio
-    pathnamepronunciationAudio = '/tmp/RawAudiosAndTxtFile/pronunciation.' + pronunciationFormat
+    pathnamepronunciationAudio = 'tmp/RawAudiosAndTxtFile/pronunciation.' + pronunciationFormat
     pronunciationAudio = open(pathnamepronunciationAudio, "wb")
     decode_string = base64.b64decode(pronunciationBase64)
     pronunciationAudio.write(decode_string)
 
     # Pronunciation Native Audio
-    pathnamepronunciationNativeAudio = '/tmp/RawAudiosAndTxtFile/pronunciationNative.' + pronunciationNativeFormat
+    pathnamepronunciationNativeAudio = 'tmp/RawAudiosAndTxtFile/pronunciationNative.' + pronunciationNativeFormat
     pronunciationNativeAudio = open(pathnamepronunciationNativeAudio, "wb")
     decode_string = base64.b64decode(pronunciationNativeBase64)
     pronunciationNativeAudio.write(decode_string)
 
     # write phrase.txt file
-    text_file = open('/tmp/RawAudiosAndTxtFile/pronunciationNative.txt', "wt")
+    text_file = open('tmp/RawAudiosAndTxtFile/pronunciationNative.txt', "wt")
     n = text_file.write(phrase)
     text_file.close()
     print('Printing files into RawAudiosAndTxtFile')
-    print(os.listdir('/tmp/RawAudiosAndTxtFile'))
+    print(os.listdir('tmp/RawAudiosAndTxtFile'))
 
     # Generate adecuate audio files
     print('Its generating adecuate audio files')
-    os.system('mkdir /tmp/audios')
+    os.system('mkdir tmp/audios')
     # Iterate over multiples audios files
-    for audiofile in os.scandir('/tmp/RawAudiosAndTxtFile'):
+    for audiofile in os.scandir('tmp/RawAudiosAndTxtFile'):
 
         # Work only with audios files. Add other possible formats to conditional if it is necesary
         if audiofile.path.endswith('.txt') != True:
@@ -80,7 +81,7 @@ def read_base64_files():
             nameinput = os.path.splitext(os.path.basename(audiofile.path))[0]
 
             # folder with adecuate audio files
-            pathoutput = '/tmp/audios' + '/' + nameinput + '.wav'
+            pathoutput = 'tmp/audios' + '/' + nameinput + '.wav'
 
             # Read raw audio file
             audio = AudioSegment.from_file(audiofile.path)
@@ -96,7 +97,7 @@ def read_base64_files():
             # Write in .wav format
             audio.export(pathoutput, format = 'wav')
     
-    os.system('cp -i /tmp/RawAudiosAndTxtFile/pronunciationNative.txt /tmp/audios')
+    os.system('cp -i tmp/RawAudiosAndTxtFile/pronunciationNative.txt tmp/audios')
 
     # Speech to text with SpeechRecognition Package
     # Create recognizer instance
@@ -105,7 +106,7 @@ def read_base64_files():
 
     # Capture audio data
     # pronunciation audio
-    path_audio_pronunciation = '/tmp/audios/pronunciation.wav'
+    path_audio_pronunciation = 'tmp/audios/pronunciation.wav'
     audiofilepronunciation = sr.AudioFile(path_audio_pronunciation)
     with audiofilepronunciation as source:
         audiopronunciation = r.record(source)
@@ -119,19 +120,19 @@ def read_base64_files():
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
 
     # write nameaudio.txt file
-    text_file = open('/tmp/audios/pronunciation.txt', "wt")
+    text_file = open('tmp/audios/pronunciation.txt', "wt")
     n = text_file.write(pronunciation)
     text_file.close()
     print('Printing files into audios folder')
-    print(os.listdir('/tmp/audios'))
+    print(os.listdir('tmp/audios'))
     print('Printing information into pronunciation.txt')
-    print(os.system('cat /tmp/audios/pronunciation.txt'))
+    print(os.system('cat tmp/audios/pronunciation.txt'))
 
     # To excecute forced alignment process until to produce the whished files
     print('Its doing forced alignment process')
     namepronunciationfile = 'pronunciation-palign.csv'
     namepronunciationNativefile = 'pronunciationNative-palign.csv'
-    filesinaudio = os.listdir('/tmp/audios')
+    filesinaudio = os.listdir('tmp/audios')
     number_of_times = 0
     print('With SPPAS 3.9')
 
@@ -150,23 +151,23 @@ def read_base64_files():
         # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
         # os.system(annotation_alignment)
         # print(annotation_alignment)
-        annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I /tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
+        annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
         os.system(annotation_cli)
         print(annotation_cli)
-        filesinaudio = os.listdir('/tmp/audios')
+        filesinaudio = os.listdir('tmp/audios')
         number_of_times += 1
 
     print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
     print('Printing files into audios folder')
-    print(os.listdir('/tmp/audios'))
+    print(os.listdir('tmp/audios'))
     print('Printing information into pronunciation.txt')
-    print(os.system('cat /tmp/audios/pronunciation.txt'))
+    print(os.system('cat tmp/audios/pronunciation.txt'))
     print('Printing information into pronunciationNative.txt')
-    print(os.system('cat /tmp/audios/pronunciationNative.txt'))
+    print(os.system('cat tmp/audios/pronunciationNative.txt'))
     print('Content into pronunciation-palign.csv file')
-    print(os.system('cat /tmp/audios/pronunciation-palign.csv'))
+    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
     print('Content into pronunciationNative-palign.csv file')
-    print(os.system('cat /tmp/audios/pronunciationNative-palign.csv'))
+    print(os.system('cat tmp/audios/pronunciationNative-palign.csv'))
 
     # Calculate Completeness Score
     print('Its calculating scores')
@@ -178,21 +179,21 @@ def read_base64_files():
     print('Files into project')
     print(os.listdir())
     print('Its printing files into audios folder')
-    print(os.listdir('/tmp/audios'))
+    print(os.listdir('tmp/audios'))
     print('Content into pronunciation-palign.csv file')
     print('Printing with cat')
-    print(os.system('cat /tmp/audios/pronunciation-palign.csv'))
+    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
     print('Printing with open')
-    file_input = open('/tmp/audios/pronunciation-palign.csv', 'r')
+    file_input = open('tmp/audios/pronunciation-palign.csv', 'r')
     file_palign_csv = file_input.readlines()
     [print(line) for line in file_palign_csv]
     
-    path_pronunciation_palign = '/tmp/audios/pronunciation-palign.csv'
+    path_pronunciation_palign = 'tmp/audios/pronunciation-palign.csv'
     df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
     df_pronunciation_palign['duration'] = df_pronunciation_palign.end - df_pronunciation_palign.start
 
     # read pronunciation native palign file
-    path_native_palign = '/tmp/audios/pronunciationNative-palign.csv'
+    path_native_palign = 'tmp/audios/pronunciationNative-palign.csv'
     df_native_palign = pd.read_csv(path_native_palign, names=['typealign', 'start', 'end', 'phonem'])
     df_native_palign['duration'] = df_native_palign.end - df_native_palign.start
 
@@ -263,7 +264,8 @@ def read_base64_files():
 
     # Remove audios and RawAudiosAndTxtFile
     print('Deleting tmp folder')
-    os.system  ('rm -r tmp')
+    os.system('rm -r tmp/RawAudiosAndTxtFile')
+    os.system('rm -r tmp/audios')
 
     return jsonify(pronunciations_scores)
     # return jsonify({'Phrase to evaluate after preprocesing': phrase})
