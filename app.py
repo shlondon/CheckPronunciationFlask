@@ -21,8 +21,9 @@ def read_base64_files():
     from fuzzywuzzy import fuzz
     import pandas as pd
 
-    # # Remove audios and RawAudiosAndTxtFile
-    # os.system  ('rm -r tmp')
+    # Remove audios and RawAudiosAndTxtFile
+    if 'tmp' in os.listdir():
+        os.system  ('rm -r tmp')
 
     # Read information
     print('Its reading request inputs')
