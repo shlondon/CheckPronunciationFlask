@@ -63,36 +63,38 @@ def read_base64_files():
     print('Printing files into RawAudiosAndTxtFile')
     print(os.listdir('./RawAudiosAndTxtFile'))
 
-    # # Generate adecuate audio files
-    # print('Its generating adecuate audio files')
-    # os.system('mkdir audios')
-    # # Iterate over multiples audios files
-    # for audiofile in os.scandir('./RawAudiosAndTxtFile'):
+    # Generate adecuate audio files
+    print('Its generating adecuate audio files')
+    os.system('mkdir audios')
+    # Iterate over multiples audios files
+    for audiofile in os.scandir('./RawAudiosAndTxtFile'):
 
-    #     # Work only with audios files. Add other possible formats to conditional if it is necesary
-    #     if audiofile.path.endswith('.txt') != True:
+        # Work only with audios files. Add other possible formats to conditional if it is necesary
+        if audiofile.path.endswith('.txt') != True:
         
-    #         # name of the file 
-    #         nameinput = os.path.splitext(os.path.basename(audiofile.path))[0]
+            # name of the file 
+            nameinput = os.path.splitext(os.path.basename(audiofile.path))[0]
 
-    #         # folder with adecuate audio files
-    #         pathoutput = './audios' + '/' + nameinput + '.wav'
+            # folder with adecuate audio files
+            pathoutput = './audios' + '/' + nameinput + '.wav'
 
-    #         # Read raw audio file
-    #         audio = AudioSegment.from_file(audiofile.path)
+            # Read raw audio file
+            audio = AudioSegment.from_file(audiofile.path)
 
-    #         # Normalize
-    #         audio = normalize(audio)
+            # Normalize
+            audio = normalize(audio)
 
-    #         # Set adecuate features
-    #         audio = audio.set_channels(1)
-    #         audio = audio.set_frame_rate(16000)
-    #         audio = audio.set_sample_width(2)
+            # Set adecuate features
+            audio = audio.set_channels(1)
+            audio = audio.set_frame_rate(16000)
+            audio = audio.set_sample_width(2)
 
-    #         # Write in .wav format
-    #         audio.export(pathoutput, format = 'wav')
+            # Write in .wav format
+            audio.export(pathoutput, format = 'wav')
     
-    # os.system('cp -i ./RawAudiosAndTxtFile/pronunciationNative.txt ./audios')
+    os.system('cp -i ./RawAudiosAndTxtFile/pronunciationNative.txt ./audios')
+    print('Printing files into audios folder')
+    print(os.listdir('./audios'))
 
     # # Speech to text with SpeechRecognition Package
     # # Create recognizer instance
