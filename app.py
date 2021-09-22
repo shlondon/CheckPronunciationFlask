@@ -147,7 +147,7 @@ def read_base64_files():
         # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
         # os.system(annotation_alignment)
         # print(annotation_alignment)
-        annotation_cli = '/SPPAS-3/sppas/bin/annotation.py -I /tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
+        annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I /tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
         os.system(annotation_cli)
         print(annotation_cli)
         filesinaudio = os.listdir('/tmp/audios')
