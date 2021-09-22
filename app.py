@@ -246,8 +246,8 @@ def read_base64_files():
     # # Remove audios and RawAudiosAndTxtFile
     # os.system  ('rm -r audios RawAudiosAndTxtFile')
 
-    return jsonify(pronunciations_scores)
-    # return jsonify({'Phrase to evaluate after preprocesing': phrase})
+    # return jsonify(pronunciations_scores)
+    return jsonify({'Phrase to evaluate after preprocesing': phrase})
 
 
 
