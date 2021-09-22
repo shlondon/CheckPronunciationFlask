@@ -127,148 +127,151 @@ def read_base64_files():
     print(os.listdir('tmp/audios'))
     print('Printing information into pronunciation.txt')
     print(os.system('cat tmp/audios/pronunciation.txt'))
-
-    # To excecute forced alignment process until to produce the whished files
-    print('Its doing forced alignment process')
-    namepronunciationfile = 'pronunciation-palign.csv'
-    namepronunciationNativefile = 'pronunciationNative-palign.csv'
-    filesinaudio = os.listdir('tmp/audios')
-    number_of_times = 0
-    print('With SPPAS 3.9')
-
-    while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
-        # Forced alignment
-        # annotation_fillipus = '/SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
-        # os.system(annotation_fillipus)
-        # print(annotation_fillipus)
-        # # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -r .SPPAS-3/resources/vocab/spa.vocab -I ./audios -l spa -e .csv'
-        # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -I ./audios -l spa -e .csv'
-        # os.system(annotation_textnormalization)
-        # print(annotation_textnormalization)
-        # annotation_phonetization = './SPPAS-3/sppas/bin/phonetize.py -I ./audios -l spa -e .csv'
-        # os.system(annotation_phonetization)
-        # print(annotation_phonetization)
-        # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
-        # os.system(annotation_alignment)
-        # print(annotation_alignment)
-        annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
-        os.system(annotation_cli)
-        print(annotation_cli)
-        filesinaudio = os.listdir('tmp/audios')
-        number_of_times += 1
-
-    print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
-    print('Printing files into audios folder')
-    print(os.listdir('tmp/audios'))
-    print('Printing information into pronunciation.txt')
-    print(os.system('cat tmp/audios/pronunciation.txt'))
     print('Printing information into pronunciationNative.txt')
     print(os.system('cat tmp/audios/pronunciationNative.txt'))
-    print('Content into pronunciation-palign.csv file')
-    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
-    print('Content into pronunciationNative-palign.csv file')
-    print(os.system('cat tmp/audios/pronunciationNative-palign.csv'))
 
-    # Calculate Completeness Score
-    print('Its calculating scores')
-    # completeness score
-    completeness_score = int(round(fuzz.QRatio(pronunciation, phrase),0))
+    # # To excecute forced alignment process until to produce the whished files
+    # print('Its doing forced alignment process')
+    # namepronunciationfile = 'pronunciation-palign.csv'
+    # namepronunciationNativefile = 'pronunciationNative-palign.csv'
+    # filesinaudio = os.listdir('tmp/audios')
+    # number_of_times = 0
+    # print('With SPPAS 3.9')
 
-    # Calculate Accuaracy Score
-    # read pronunciation palign file
-    print('Files into project')
-    print(os.listdir())
-    print('Its printing files into audios folder')
-    print(os.listdir('tmp/audios'))
-    print('Content into pronunciation-palign.csv file')
-    print('Printing with cat')
-    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
-    print('Printing with open')
-    file_input = open('tmp/audios/pronunciation-palign.csv', 'r')
-    file_palign_csv = file_input.readlines()
-    [print(line) for line in file_palign_csv]
+    # while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
+    #     # Forced alignment
+    #     # annotation_fillipus = '/SPPAS-3/sppas/bin/fillipus.py -I ./audios -e .csv'
+    #     # os.system(annotation_fillipus)
+    #     # print(annotation_fillipus)
+    #     # # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -r .SPPAS-3/resources/vocab/spa.vocab -I ./audios -l spa -e .csv'
+    #     # annotation_textnormalization = './SPPAS-3/sppas/bin/normalize.py -I ./audios -l spa -e .csv'
+    #     # os.system(annotation_textnormalization)
+    #     # print(annotation_textnormalization)
+    #     # annotation_phonetization = './SPPAS-3/sppas/bin/phonetize.py -I ./audios -l spa -e .csv'
+    #     # os.system(annotation_phonetization)
+    #     # print(annotation_phonetization)
+    #     # annotation_alignment = './SPPAS-3/sppas/bin/alignment.py -I ./audios -l spa -e .csv'
+    #     # os.system(annotation_alignment)
+    #     # print(annotation_alignment)
+    #     annotation_cli = './SPPAS-3/sppas/bin/annotation.py -I tmp/audios -l spa -e .csv --fillipus --textnorm --phonetize --alignment'
+    #     os.system(annotation_cli)
+    #     print(annotation_cli)
+    #     filesinaudio = os.listdir('tmp/audios')
+    #     number_of_times += 1
+
+    # print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
+    # print('Printing files into audios folder')
+    # print(os.listdir('tmp/audios'))
+    # print('Printing information into pronunciation.txt')
+    # print(os.system('cat tmp/audios/pronunciation.txt'))
+    # print('Printing information into pronunciationNative.txt')
+    # print(os.system('cat tmp/audios/pronunciationNative.txt'))
+    # print('Content into pronunciation-palign.csv file')
+    # print(os.system('cat tmp/audios/pronunciation-palign.csv'))
+    # print('Content into pronunciationNative-palign.csv file')
+    # print(os.system('cat tmp/audios/pronunciationNative-palign.csv'))
+
+    # # Calculate Completeness Score
+    # print('Its calculating scores')
+    # # completeness score
+    # completeness_score = int(round(fuzz.QRatio(pronunciation, phrase),0))
+
+    # # Calculate Accuaracy Score
+    # # read pronunciation palign file
+    # print('Files into project')
+    # print(os.listdir())
+    # print('Its printing files into audios folder')
+    # print(os.listdir('tmp/audios'))
+    # print('Content into pronunciation-palign.csv file')
+    # print('Printing with cat')
+    # print(os.system('cat tmp/audios/pronunciation-palign.csv'))
+    # print('Printing with open')
+    # file_input = open('tmp/audios/pronunciation-palign.csv', 'r')
+    # file_palign_csv = file_input.readlines()
+    # [print(line) for line in file_palign_csv]
     
-    path_pronunciation_palign = 'tmp/audios/pronunciation-palign.csv'
-    df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
-    df_pronunciation_palign['duration'] = df_pronunciation_palign.end - df_pronunciation_palign.start
+    # path_pronunciation_palign = 'tmp/audios/pronunciation-palign.csv'
+    # df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
+    # df_pronunciation_palign['duration'] = df_pronunciation_palign.end - df_pronunciation_palign.start
 
-    # read pronunciation native palign file
-    path_native_palign = 'tmp/audios/pronunciationNative-palign.csv'
-    df_native_palign = pd.read_csv(path_native_palign, names=['typealign', 'start', 'end', 'phonem'])
-    df_native_palign['duration'] = df_native_palign.end - df_native_palign.start
+    # # read pronunciation native palign file
+    # path_native_palign = 'tmp/audios/pronunciationNative-palign.csv'
+    # df_native_palign = pd.read_csv(path_native_palign, names=['typealign', 'start', 'end', 'phonem'])
+    # df_native_palign['duration'] = df_native_palign.end - df_native_palign.start
 
-    # read spa_dict file
-    path_spa_dict = './SPPAS-3/resources/dict/spa.dict'
-    with open(path_spa_dict, 'r', encoding='utf-8') as datafile:
-            raw_lines = datafile.readlines()
+    # # read spa_dict file
+    # path_spa_dict = './SPPAS-3/resources/dict/spa.dict'
+    # with open(path_spa_dict, 'r', encoding='utf-8') as datafile:
+    #         raw_lines = datafile.readlines()
 
-    # create dict with spa_dict information. Word as key and Phonems as values
-    words_phonems = [line.split('\n')[0].split(' [] ') for line in raw_lines]
-    spa_dict = {}
-    for word_phonem in words_phonems:
-        spa_dict[word_phonem[0]] = word_phonem[1].replace(' ', '-')
+    # # create dict with spa_dict information. Word as key and Phonems as values
+    # words_phonems = [line.split('\n')[0].split(' [] ') for line in raw_lines]
+    # spa_dict = {}
+    # for word_phonem in words_phonems:
+    #     spa_dict[word_phonem[0]] = word_phonem[1].replace(' ', '-')
 
-    # phrase in phonems
-    phrase_phonem_list = [spa_dict[word] for word in phrase.split(' ')]
-    phrase_phonem_str = ' '.join(phrase_phonem_list)
+    # # phrase in phonems
+    # phrase_phonem_list = [spa_dict[word] for word in phrase.split(' ')]
+    # phrase_phonem_str = ' '.join(phrase_phonem_list)
 
-    # pronunciation in phonems
-    pronunciation_phonem_list = df_pronunciation_palign[(df_pronunciation_palign.typealign == 'PronTokAlign')][1:-1].phonem.values.tolist()
-    pronunciation_phonem_list = [element.split('=')[0] for element in pronunciation_phonem_list]
-    pronunciation_phonem_str = ' '.join(pronunciation_phonem_list)
+    # # pronunciation in phonems
+    # pronunciation_phonem_list = df_pronunciation_palign[(df_pronunciation_palign.typealign == 'PronTokAlign')][1:-1].phonem.values.tolist()
+    # pronunciation_phonem_list = [element.split('=')[0] for element in pronunciation_phonem_list]
+    # pronunciation_phonem_str = ' '.join(pronunciation_phonem_list)
 
-    # accuracy score
-    accuracy_score = int(round(fuzz.QRatio(pronunciation_phonem_str, phrase_phonem_str),0))
+    # # accuracy score
+    # accuracy_score = int(round(fuzz.QRatio(pronunciation_phonem_str, phrase_phonem_str),0))
 
-    # Calculate Fluency Score
+    # # Calculate Fluency Score
 
-    # Pronunciation Phrase duration
-    print('Its printing df_pronunciation_palign')
-    print(df_pronunciation_palign)
-    pronunciation_phrase_duration = round(df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
+    # # Pronunciation Phrase duration
+    # print('Its printing df_pronunciation_palign')
+    # print(df_pronunciation_palign)
+    # pronunciation_phrase_duration = round(df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
 
-    # Pronunciation tokens duration
-    pronunciation_tokens_duration = df_pronunciation_palign[df_pronunciation_palign.typealign == 'TokensAlign'][1:-1].duration.values
-    pronunciation_tokens_duration = [round(score, 1) for score in pronunciation_tokens_duration]
+    # # Pronunciation tokens duration
+    # pronunciation_tokens_duration = df_pronunciation_palign[df_pronunciation_palign.typealign == 'TokensAlign'][1:-1].duration.values
+    # pronunciation_tokens_duration = [round(score, 1) for score in pronunciation_tokens_duration]
 
-    # Pronunciation phonems duration
-    pronunciation_phonem_duration = df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values
-    pronunciation_phonem_duration = [round(score, 1) for score in pronunciation_phonem_duration]
+    # # Pronunciation phonems duration
+    # pronunciation_phonem_duration = df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values
+    # pronunciation_phonem_duration = [round(score, 1) for score in pronunciation_phonem_duration]
 
-    # Native Phrase duration
-    native_phrase_duration = round(df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
+    # # Native Phrase duration
+    # native_phrase_duration = round(df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
 
-    # Native tokens duration
-    native_tokens_duration = df_native_palign[df_native_palign.typealign == 'TokensAlign'][1:-1].duration.values
-    native_tokens_duration = [round(score, 1) for score in native_tokens_duration]
+    # # Native tokens duration
+    # native_tokens_duration = df_native_palign[df_native_palign.typealign == 'TokensAlign'][1:-1].duration.values
+    # native_tokens_duration = [round(score, 1) for score in native_tokens_duration]
 
-    # Native phonems duration
-    native_phonem_duration = df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].end.values - df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].start.values
-    native_phonem_duration = [round(score, 1) for score in native_phonem_duration]
+    # # Native phonems duration
+    # native_phonem_duration = df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].end.values - df_native_palign[df_native_palign.typealign == 'PhonAlign'][1:-1].start.values
+    # native_phonem_duration = [round(score, 1) for score in native_phonem_duration]
 
-    # Fluency Score
-    native_duration = [native_phrase_duration] + native_tokens_duration + native_phonem_duration
-    long_native = len(native_duration)
-    pronunciation_duration = [pronunciation_phrase_duration] + pronunciation_tokens_duration + pronunciation_phonem_duration
-    pronunciation_duration = pronunciation_duration[:long_native]
-    fluency_score = round((sum([en == ep for en, ep in zip(native_duration, pronunciation_duration)])/long_native)*100, 2)
+    # # Fluency Score
+    # native_duration = [native_phrase_duration] + native_tokens_duration + native_phonem_duration
+    # long_native = len(native_duration)
+    # pronunciation_duration = [pronunciation_phrase_duration] + pronunciation_tokens_duration + pronunciation_phonem_duration
+    # pronunciation_duration = pronunciation_duration[:long_native]
+    # fluency_score = round((sum([en == ep for en, ep in zip(native_duration, pronunciation_duration)])/long_native)*100, 2)
 
-    # Pronunciation Score
-    pronunciation_score = round((((completeness_score/100)*0.3333) + ((accuracy_score/100)*0.3333) + ((fluency_score/100)*0.3334))*100, 2)
+    # # Pronunciation Score
+    # pronunciation_score = round((((completeness_score/100)*0.3333) + ((accuracy_score/100)*0.3333) + ((fluency_score/100)*0.3334))*100, 2)
 
-    # Write Pronunciations Scores
-    pronunciations_scores = {'Completeness': completeness_score,
-                            'Accuracy': accuracy_score,
-                            'Fluency': fluency_score,
-                            'Pronunciation': pronunciation_score}
+    # # Write Pronunciations Scores
+    # pronunciations_scores = {'Completeness': completeness_score,
+    #                         'Accuracy': accuracy_score,
+    #                         'Fluency': fluency_score,
+    #                         'Pronunciation': pronunciation_score}
 
-    # Remove audios and RawAudiosAndTxtFile
-    print('Deleting tmp folder')
-    os.system('rm -r tmp/RawAudiosAndTxtFile')
-    os.system('rm -r tmp/audios')
+    # # Remove audios and RawAudiosAndTxtFile
+    # print('Deleting tmp folder')
+    # os.system('rm -r tmp/RawAudiosAndTxtFile')
+    # os.system('rm -r tmp/audios')
 
-    return jsonify(pronunciations_scores)
-    # return jsonify({'Phrase to evaluate after preprocesing': phrase})
+    # return jsonify(pronunciations_scores)
+    return jsonify({'Phrase to evaluate after preprocesing': phrase,
+                    'Phrase pronunced':pronunciation})
 
 
 
