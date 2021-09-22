@@ -61,7 +61,7 @@ def read_base64_files():
     n = text_file.write(phrase)
     text_file.close()
     print('Printing files into RawAudiosAndTxtFile')
-    print(os.listdir())
+    print(os.listdir('./RawAudiosAndTxtFile'))
 
     # # Generate adecuate audio files
     # print('Its generating adecuate audio files')
