@@ -21,8 +21,8 @@ def read_base64_files():
     from fuzzywuzzy import fuzz
     import pandas as pd
 
-    # Remove audios and RawAudiosAndTxtFile
-    os.system  ('rm -r audios RawAudiosAndTxtFile')
+    # # Remove audios and RawAudiosAndTxtFile
+    # os.system  ('rm -r tmp')
 
     # Read information
     print('Its reading request inputs')
@@ -261,7 +261,8 @@ def read_base64_files():
                             'Pronunciation': pronunciation_score}
 
     # Remove audios and RawAudiosAndTxtFile
-    os.system  ('rm -r audios RawAudiosAndTxtFile')
+    print('Deleting tmp folder')
+    os.system  ('rm -r tmp')
 
     return jsonify(pronunciations_scores)
     # return jsonify({'Phrase to evaluate after preprocesing': phrase})
