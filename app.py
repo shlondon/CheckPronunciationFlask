@@ -19,7 +19,6 @@ def read_base64_files():
     from pydub.effects import normalize
     import speech_recognition as sr
     from fuzzywuzzy import fuzz
-    import numpy as np
     import pandas as pd
 
     # Read information
@@ -194,7 +193,7 @@ def read_base64_files():
     df_native_palign['duration'] = df_native_palign.end - df_native_palign.start
 
     # read spa_dict file
-    path_spa_dict = '/SPPAS-3/resources/dict/spa.dict'
+    path_spa_dict = './SPPAS-3/resources/dict/spa.dict'
     with open(path_spa_dict, 'r', encoding='utf-8') as datafile:
             raw_lines = datafile.readlines()
 
