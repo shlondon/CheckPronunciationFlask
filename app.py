@@ -38,13 +38,15 @@ def read_base64_files():
     for puntuacion_mark in puntuacions_marks:
         phrase = phrase.replace(puntuacion_mark, '')
 
-    # Create audios into a RawAudiosAndTxtFile folder and put in the same folder the phrase in txt file format
-    print('Its transforming base64 inputs to audio files')
-    print('Files and folders')
-    print(os.listdir())
-    os.system('mkdir RawAudiosAndTxtFile')
-    print('Files and folders after creat RawAudioAndTxtFile')
-    print(os.listdir())
+    print('Phrase to evaluate is {}'.format(phrase))
+
+    # # Create audios into a RawAudiosAndTxtFile folder and put in the same folder the phrase in txt file format
+    # print('Its transforming base64 inputs to audio files')
+    # print('Files and folders')
+    # print(os.listdir())
+    # os.system('mkdir RawAudiosAndTxtFile')
+    # print('Files and folders after creat RawAudioAndTxtFile')
+    # print(os.listdir())
 
     
     # # Pronunciation Audio
@@ -248,7 +250,7 @@ def read_base64_files():
     # os.system  ('rm -r audios RawAudiosAndTxtFile')
 
     # return jsonify(pronunciations_scores)
-    return jsonify({'Folders at begining'})
+    return jsonify({'Phrase to evaluate after preprocesing': phrase})
 
 
 
