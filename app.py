@@ -93,33 +93,35 @@ def read_base64_files():
             audio.export(pathoutput, format = 'wav')
     
     os.system('cp -i ./RawAudiosAndTxtFile/pronunciationNative.txt ./audios')
+
+    # Speech to text with SpeechRecognition Package
+    # Create recognizer instance
+    print('Its doing speech recognition process')
+    r = sr.Recognizer()
+
+    # Capture audio data
+    # pronunciation audio
+    path_audio_pronunciation = './audios/pronunciation.wav'
+    audiofilepronunciation = sr.AudioFile(path_audio_pronunciation)
+    with audiofilepronunciation as source:
+        audiopronunciation = r.record(source)
+
+    # Speech to text
+    try:
+        pronunciation = r.recognize_google(audiopronunciation, language='es-CO').lower()
+    except sr.UnknownValueError:
+        print("Google Speech Recognition could not understand audio")
+    except sr.RequestError as e:
+        print("Could not request results from Google Speech Recognition service; {0}".format(e))
+
+    # write nameaudio.txt file
+    text_file = open('./audios/pronunciation.txt', "wt")
+    n = text_file.write(pronunciation)
+    text_file.close()
     print('Printing files into audios folder')
     print(os.listdir('./audios'))
-
-    # # Speech to text with SpeechRecognition Package
-    # # Create recognizer instance
-    # print('Its doing speech recognition process')
-    # r = sr.Recognizer()
-
-    # # Capture audio data
-    # # pronunciation audio
-    # path_audio_pronunciation = './audios/pronunciation.wav'
-    # audiofilepronunciation = sr.AudioFile(path_audio_pronunciation)
-    # with audiofilepronunciation as source:
-    #     audiopronunciation = r.record(source)
-
-    # # Speech to text
-    # try:
-    #     pronunciation = r.recognize_google(audiopronunciation, language='es-CO').lower()
-    # except sr.UnknownValueError:
-    #     print("Google Speech Recognition could not understand audio")
-    # except sr.RequestError as e:
-    #     print("Could not request results from Google Speech Recognition service; {0}".format(e))
-
-    # # write nameaudio.txt file
-    # text_file = open('./audios/pronunciation.txt', "wt")
-    # n = text_file.write(pronunciation)
-    # text_file.close()
+    print('Printing information into pronunciation.txt')
+    print(os.system('cat ./audios/pronunciation.txt'))
 
     # # To excecute forced alignment process until to produce the whished files
     # print('Its doing forced alignment process')
