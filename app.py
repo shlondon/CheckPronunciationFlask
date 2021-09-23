@@ -14,7 +14,7 @@ def hello_world():
 @app.route('/', methods=['POST'])
 def read_base64_files():
     # Tecnology
-    print('Loading technologies ...')
+    print('\x1b[6;30;42m' + "Loading technologies ..." + '\x1b[0m')
     from pydub import AudioSegment
     from pydub.effects import normalize
     import speech_recognition as sr
@@ -31,7 +31,7 @@ def read_base64_files():
         os.system('mkdir tmp')
 
     # Read information
-    print('Its reading request inputs')
+    print('\x1b[6;30;42m' + "Reading request inputs" + '\x1b[0m')
     request_data = request.get_json()
     pronunciationBase64 = request_data['Pronunciation']
     pronunciationFormat = request_data['PronunciationFormat']
@@ -41,8 +41,6 @@ def read_base64_files():
     puntuacions_marks = ['?', '¿', '.', ',', ':', ';']
     for puntuacion_mark in puntuacions_marks:
         phrase = phrase.replace(puntuacion_mark, '')
-
-    print('Phrase to evaluate is {}'.format(phrase))
 
     # Create RawAudiosAndTxtFile folder
     os.system('mkdir tmp/RawAudiosAndTxtFile/')
@@ -63,11 +61,9 @@ def read_base64_files():
     text_file = open('tmp/RawAudiosAndTxtFile/pronunciationNative.txt', "wt")
     n = text_file.write(phrase)
     text_file.close()
-    print('Printing files into RawAudiosAndTxtFile')
-    print(os.listdir('tmp/RawAudiosAndTxtFile'))
 
     # Generate adecuate audio files
-    print('Its generating adecuate audio files')
+    print('\x1b[6;30;42m' + "Generating adecuate audio files" + '\x1b[0m')
     os.system('mkdir tmp/audios')
     # Iterate over multiples audios files
     for audiofile in os.scandir('tmp/RawAudiosAndTxtFile'):
@@ -97,9 +93,45 @@ def read_base64_files():
     
     os.system('cp -i tmp/RawAudiosAndTxtFile/pronunciationNative.txt tmp/audios')
 
+    # # Speech to text with Vosk Package
+    # # Capture audio data
+    # # pronunciation audio
+    # path_audio_pronunciation = 'audios/pronunciation.wav'
+    # name_audio_pronunciation = path_audio_pronunciation.split('.wav')[0]
+
+    # SetLogLevel(0)
+
+    # if not os.path.exists("model"):
+    #     print ("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
+    #     exit (1)
+
+    # wf = wave.open(path_audio_pronunciation, "rb")
+    # if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
+    #     print ("Audio file must be WAV format mono PCM.")
+    #     exit (1)
+
+    # model = Model("model")
+    # rec = KaldiRecognizer(model, wf.getframerate())
+    # rec.SetWords(True)
+
+    # while True:
+    #     data = wf.readframes(16000)
+    #     if len(data) == 0:
+    #         break
+    #     if rec.AcceptWaveform(data):
+    #         rec.Result()
+    #         #print(rec.Result())
+    #     else:
+    #         rec.PartialResult()
+    #         #print(rec.PartialResult())
+
+    # vosk_output = json.loads(rec.FinalResult())
+    # pronunciation = vosk_output['text']
+    # print(pronunciation)
+
     # Speech to text with SpeechRecognition Package
     # Create recognizer instance
-    print('Its doing speech recognition process')
+    print('\x1b[6;30;42m' + "Transforming Speech To Text" + '\x1b[0m')
     r = sr.Recognizer()
 
     # Capture audio data
@@ -121,20 +153,13 @@ def read_base64_files():
     text_file = open('tmp/audios/pronunciation.txt', "wt")
     n = text_file.write(pronunciation)
     text_file.close()
-    print('Printing files into audios folder')
-    print(os.listdir('tmp/audios'))
-    print('Printing information into pronunciation.txt')
-    print(os.system('cat tmp/audios/pronunciation.txt'))
-    print('Printing information into pronunciationNative.txt')
-    print(os.system('cat tmp/audios/pronunciationNative.txt'))
 
     # To excecute forced alignment process until to produce the whished files
-    print('Its doing forced alignment process')
+    print('\x1b[6;30;42m' + "Doing Forced Alignment process" + '\x1b[0m')
     namepronunciationfile = 'pronunciation-palign.csv'
     namepronunciationNativefile = 'pronunciationNative-palign.csv'
     filesinaudio = os.listdir('tmp/audios')
     number_of_times = 0
-    print('With SPPAS 3.9')
 
     while (namepronunciationfile not in filesinaudio) and (namepronunciationNativefile not in filesinaudio):
         # Forced alignment
@@ -143,31 +168,14 @@ def read_base64_files():
         number_of_times += 1
 
     print('Number of times that forced alignment process was excecuted: {}'.format(number_of_times))
-    print('Printing files into audios folder')
-    print(os.listdir('tmp/audios'))
-    print('Content into pronunciation-palign.csv file')
-    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
-    print('Content into pronunciationNative-palign.csv file')
-    print(os.system('cat tmp/audios/pronunciationNative-palign.csv'))
 
     # Calculate Completeness Score
-    print('Its calculating scores')
+    print('\x1b[6;30;42m' + "Calculating Pronunciation Scores" + '\x1b[0m')
     # completeness score
     completeness_score = int(round(fuzz.QRatio(pronunciation, phrase),0))
 
     # Calculate Accuaracy Score
     # read pronunciation palign file
-    print('Files into project')
-    print(os.listdir())
-    print('Its printing files into audios folder')
-    print(os.listdir('tmp/audios'))
-    print('Content into pronunciation-palign.csv file')
-    print('Printing with cat')
-    print(os.system('cat tmp/audios/pronunciation-palign.csv'))
-    print('Printing with open')
-    file_input = open('tmp/audios/pronunciation-palign.csv', 'r')
-    file_palign_csv = file_input.readlines()
-    [print(line) for line in file_palign_csv]
     
     path_pronunciation_palign = 'tmp/audios/pronunciation-palign.csv'
     df_pronunciation_palign = pd.read_csv(path_pronunciation_palign, names=['typealign', 'start', 'end', 'phonem'])
@@ -204,8 +212,6 @@ def read_base64_files():
     # Calculate Fluency Score
 
     # Pronunciation Phrase duration
-    print('Its printing df_pronunciation_palign')
-    print(df_pronunciation_palign)
     pronunciation_phrase_duration = round(df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].end.values[-1] - df_pronunciation_palign[df_pronunciation_palign.typealign == 'PhonAlign'][1:-1].start.values[0], 1)
 
     # Pronunciation tokens duration
@@ -244,10 +250,8 @@ def read_base64_files():
                             'Pronunciation': pronunciation_score}
 
     # Remove audios and RawAudiosAndTxtFile
-    print('Deleting tmp folder')
+    print('\x1b[6;30;42m' + "Deleting RawAudiosAndTxtFile and audios folders" + '\x1b[0m')
     os.system('rm -r tmp/RawAudiosAndTxtFile')
     os.system('rm -r tmp/audios')
 
     return jsonify(pronunciations_scores)
-    # return jsonify({'Phrase to evaluate after preprocesing': phrase,
-    #                 'Phrase pronunced':pronunciation})
